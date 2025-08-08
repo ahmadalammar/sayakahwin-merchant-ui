@@ -12,7 +12,7 @@ const Events = () => {
   const itemsPerPage = 10
 
   useEffect(() => {
-    const merchantId = '62015170-9b5d-4902-a9c2-6169ef71382e' // Please confirm how to get merchantId
+    const merchantId = '03b97bfd-ac01-4067-b688-ed6a98d48bcf' // Please confirm how to get merchantId
     fetch(`${config.API_BASE_URL}/merchant/${merchantId}/events`)
       .then((response) => response.json())
       .then((data) => {
@@ -28,8 +28,8 @@ const Events = () => {
     setSearchTerm(term)
     const filteredEvents = allEvents.filter(
       (event) =>
-        event.name.toLowerCase().includes(term.toLowerCase()) ||
-        event.description.toLowerCase().includes(term.toLowerCase()),
+        (event.name && event.name.toLowerCase().includes(term.toLowerCase())) ||
+        (event.description && event.description.toLowerCase().includes(term.toLowerCase())),
     )
     setEvents(filteredEvents.slice(0, 10))
     setCurrentPage(1)
@@ -41,8 +41,8 @@ const Events = () => {
     const endIndex = startIndex + itemsPerPage
     const filteredEvents = allEvents.filter(
       (event) =>
-        event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.description.toLowerCase().includes(searchTerm.toLowerCase()),
+        (event.name && event.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (event.description && event.description.toLowerCase().includes(searchTerm.toLowerCase())),
     )
     setEvents(filteredEvents.slice(startIndex, endIndex))
   }
@@ -50,13 +50,13 @@ const Events = () => {
   const pageCount = Math.ceil(
     allEvents.filter(
       (event) =>
-        event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.description.toLowerCase().includes(searchTerm.toLowerCase()),
+        (event.name && event.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (event.description && event.description.toLowerCase().includes(searchTerm.toLowerCase())),
     ).length / itemsPerPage,
   )
 
   const handleView = (eventId) => {
-    const merchantId = '62015170-9b5d-4902-a9c2-6169ef71382e' // Please confirm how to get merchantId
+    const merchantId = '03b97bfd-ac01-4067-b688-ed6a98d48bcf' // Please confirm how to get merchantId
     const url = `${config.CARD_BASE_URL}/${merchantId}/${eventId}`
     window.open(url, '_blank')
   }

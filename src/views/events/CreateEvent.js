@@ -2,12 +2,16 @@ import React, { useState } from 'react'
 import { CButton, CCard, CCardBody, CCardHeader, CCol, CRow, CForm, CFormInput, CFormLabel, CFormTextarea, CFormCheck, CModal, CModalHeader, CModalBody, CModalFooter, CSpinner } from '@coreui/react'
 import config from '../../config'
 import EventSchedules from './EventSchedules'
+import EventItinerary from './EventItinerary'
 import EventGallery from './EventGallery'
 import TemplatePicker from './TemplatePicker'
+import ContactForm from './ContactForm'
 
 const CreateEvent = () => {
   const [schedules, setSchedules] = useState([{ title: '', date: '', address: '', address_url: '' }])
+  const [itinerary, setItinerary] = useState([{ name: '', time: '' }])
   const [gallery, setGallery] = useState([])
+  const [contacts, setContacts] = useState([{ name: '', phone_number: '' }])
   const [errors, setErrors] = useState({})
   const [showGiftInfo, setShowGiftInfo] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -35,12 +39,19 @@ const CreateEvent = () => {
 
   const validate = () => {
     const newErrors = {}
+    if (!selectedTemplate) newErrors.template = 'Please select a template'
     if (!formData.groom_name) newErrors.groom_name = 'Groom name is required'
+    if (!formData.groom_father_name) newErrors.groom_father_name = "Groom's father name is required"
     if (!formData.bride_name) newErrors.bride_name = 'Bride name is required'
+    if (!formData.bride_father_name) newErrors.bride_father_name = "Bride's father name is required"
     schedules.forEach((schedule, index) => {
       if (!schedule.title) newErrors[`schedule_title_${index}`] = 'Title is required'
       if (!schedule.date) newErrors[`schedule_date_${index}`] = 'Date is required'
       if (!schedule.address) newErrors[`schedule_address_${index}`] = 'Address is required'
+    })
+    contacts.forEach((contact, index) => {
+      if (!contact.name) newErrors[`contact_name_${index}`] = 'Name is required'
+      if (!contact.phone_number) newErrors[`contact_phone_${index}`] = 'Phone number is required'
     })
     return newErrors
   }
@@ -52,7 +63,7 @@ const CreateEvent = () => {
 
     if (Object.keys(newErrors).length === 0) {
       setLoading(true)
-      const merchantId = '62015170-9b5d-4902-a9c2-6169ef71382e' // Please confirm how to get merchantId
+      const merchantId = '03b97bfd-ac01-4067-b688-ed6a98d48bcf' // Please confirm how to get merchantId
       const eventData = new FormData()
 
       // Append form data
@@ -65,6 +76,12 @@ const CreateEvent = () => {
 
       // Append schedules
       eventData.append('schedules', JSON.stringify(schedules))
+
+      // Append itinerary
+      eventData.append('itineraries', JSON.stringify(itinerary))
+
+      // Append contacts
+      eventData.append('contacts', JSON.stringify(contacts))
 
       // Append gallery images
       gallery.forEach((image) => {
@@ -111,6 +128,7 @@ const CreateEvent = () => {
         <CRow>
           <CCol xs={12}>
             <TemplatePicker selectedTemplate={selectedTemplate} setSelectedTemplate={setSelectedTemplate} />
+            {errors.template && <div className="text-danger mb-3">{errors.template}</div>}
 
           <CCard className="mb-4">
             <CCardHeader>
@@ -124,8 +142,9 @@ const CreateEvent = () => {
                   {errors.groom_name && <div className="text-danger">{errors.groom_name}</div>}
                 </CCol>
                 <CCol md={6}>
-                  <CFormLabel htmlFor="groom_father_name">Groom's Father's Name</CFormLabel>
-                  <CFormInput type="text" id="groom_father_name" name="groom_father_name" value={formData.groom_father_name} onChange={handleChange} />
+                  <CFormLabel htmlFor="groom_father_name">Groom's Father's Name *</CFormLabel>
+                  <CFormInput type="text" id="groom_father_name" name="groom_father_name" value={formData.groom_father_name} onChange={handleChange} invalid={!!errors.groom_father_name} />
+                  {errors.groom_father_name && <div className="text-danger">{errors.groom_father_name}</div>}
                 </CCol>
               </CRow>
               <CRow className="mb-3">
@@ -135,8 +154,9 @@ const CreateEvent = () => {
                   {errors.bride_name && <div className="text-danger">{errors.bride_name}</div>}
                 </CCol>
                 <CCol md={6}>
-                  <CFormLabel htmlFor="bride_father_name">Bride's Father's Name</CFormLabel>
-                  <CFormInput type="text" id="bride_father_name" name="bride_father_name" value={formData.bride_father_name} onChange={handleChange} />
+                  <CFormLabel htmlFor="bride_father_name">Bride's Father's Name *</CFormLabel>
+                  <CFormInput type="text" id="bride_father_name" name="bride_father_name" value={formData.bride_father_name} onChange={handleChange} invalid={!!errors.bride_father_name} />
+                  {errors.bride_father_name && <div className="text-danger">{errors.bride_father_name}</div>}
                 </CCol>
               </CRow>
             </CCardBody>
@@ -164,6 +184,15 @@ const CreateEvent = () => {
             </CCardHeader>
             <CCardBody>
               <EventSchedules schedules={schedules} setSchedules={setSchedules} />
+            </CCardBody>
+          </CCard>
+
+          <CCard className="mb-4">
+            <CCardHeader>
+              <strong>Event Itinerary (Optional)</strong>
+            </CCardHeader>
+            <CCardBody>
+              <EventItinerary itinerary={itinerary} setItinerary={setItinerary} />
             </CCardBody>
           </CCard>
 
@@ -210,6 +239,15 @@ const CreateEvent = () => {
                   </CRow>
                 </>
               )}
+            </CCardBody>
+          </CCard>
+
+          <CCard className="mb-4">
+            <CCardHeader>
+              <strong>Contact Information</strong>
+            </CCardHeader>
+            <CCardBody>
+              <ContactForm contacts={contacts} setContacts={setContacts} />
             </CCardBody>
           </CCard>
 
