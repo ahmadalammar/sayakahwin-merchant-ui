@@ -4,6 +4,7 @@ const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const License = React.lazy(() => import('./views/license/License'))
 const Events = React.lazy(() => import('./views/events/Events'))
 const CreateEvent = React.lazy(() => import('./views/events/CreateEvent'))
+const UpdateEvent = React.lazy(() => import('./views/events/UpdateEvent'))
 const Templates = React.lazy(() => import('./views/templates/Templates'))
 
 const routes = [
@@ -12,6 +13,7 @@ const routes = [
   { path: '/license', name: 'License', element: License },
   { path: '/events', name: 'Events', element: Events },
   { path: '/events/create', name: 'Create Event', element: CreateEvent },
+  { path: '/merchant/:merchantId/events/:eventId', name: 'Update Event', element: UpdateEvent },
   { path: '/templates', name: 'Templates', element: Templates },
 ]
 

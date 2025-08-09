@@ -27,7 +27,7 @@ const EventGallery = ({ images, setImages }) => {
         {images.map((image, index) => (
           <div key={index} className="position-relative me-2 mb-2">
             <img
-              src={image.preview}
+              src={typeof image === 'string' ? image : image.preview}
               alt="Preview"
               style={{ width: '150px', height: '150px', objectFit: 'cover' }}
             />

@@ -99,7 +99,13 @@ const Events = () => {
                 >
                   View
                 </CButton>
-                <CButton color="warning" size="sm">
+                <CButton
+                  color="warning"
+                  size="sm"
+                  onClick={() =>
+                    navigate(`/merchant/03b97bfd-ac01-4067-b688-ed6a98d48bcf/events/${event.id}`)
+                  }
+                >
                   Update
                 </CButton>
               </CTableDataCell>
