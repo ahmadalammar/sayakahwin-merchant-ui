@@ -138,11 +138,15 @@ const UpdateEvent = () => {
       eventData.append('contacts', JSON.stringify(contacts))
 
       // Append gallery images
+      const existingImages = []
       gallery.forEach((image) => {
-        if (image.file) {
+        if (typeof image === 'string') {
+          existingImages.push(image)
+        } else if (image.file) {
           eventData.append('gallery_images', image.file)
         }
       })
+      eventData.append('existing_gallery_images', JSON.stringify(existingImages))
 
       console.log('Submitting data:', Object.fromEntries(eventData.entries()))
 
