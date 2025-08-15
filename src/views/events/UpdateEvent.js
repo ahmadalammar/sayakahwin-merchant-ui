@@ -16,6 +16,7 @@ const UpdateEvent = () => {
   const [contacts, setContacts] = useState([{ name: '', phone_number: '' }])
   const [errors, setErrors] = useState({})
   const [showGiftInfo, setShowGiftInfo] = useState(false)
+  const [showSalamOpening, setShowSalamOpening] = useState(true)
   const [loading, setLoading] = useState(false)
   const [modal, setModal] = useState({ show: false, message: '', color: '' })
   const [selectedTemplate, setSelectedTemplate] = useState(null)
@@ -25,6 +26,7 @@ const UpdateEvent = () => {
     bride_name: '',
     bride_father_name: '',
     opening_message: '',
+    parent_opening: '',
     event_description: '',
     gifts_description: '',
     location_iframe_url: '',
@@ -47,6 +49,7 @@ const UpdateEvent = () => {
             bride_name: data.bride_name,
             bride_father_name: data.bride_father_name,
             opening_message: data.opening_text,
+            parent_opening: data.parent_opening,
             event_description: data.events_description,
             gifts_description: data.gifts_description,
             location_iframe_url: data.location_iframe_url,
@@ -66,6 +69,7 @@ const UpdateEvent = () => {
           setContacts(data.contacts || [{ name: '', phone_number: '' }])
           setSelectedTemplate(data.template_id)
           setShowGiftInfo(!!data.gifts_description)
+          setShowSalamOpening(data.show_salam_opening)
         } else {
           setModal({ show: true, message: `Error: ${data.message}`, color: 'danger' })
         }
@@ -117,6 +121,7 @@ const UpdateEvent = () => {
       eventData.append('bride_name', formData.bride_name)
       eventData.append('bride_father_name', formData.bride_father_name)
       eventData.append('opening_message', formData.opening_message)
+      eventData.append('parent_opening', formData.parent_opening)
       eventData.append('event_description', formData.event_description)
       eventData.append('gifts_description', formData.gifts_description)
       eventData.append('location_iframe_url', formData.location_iframe_url)
@@ -127,6 +132,9 @@ const UpdateEvent = () => {
 
       // Append template
       eventData.append('template_id', selectedTemplate)
+
+      // Append showSalamOpening
+      eventData.append('showSalamOpening', showSalamOpening)
 
       // Append schedules
       eventData.append('schedules', JSON.stringify(schedules))
@@ -225,9 +233,20 @@ const UpdateEvent = () => {
               <strong>Descriptions</strong>
             </CCardHeader>
             <CCardBody>
+              <CFormCheck
+                className="mb-3"
+                id="showSalamOpening"
+                label="Show Salam Opening"
+                checked={showSalamOpening}
+                onChange={() => setShowSalamOpening(!showSalamOpening)}
+              />
               <div className="mb-3">
                 <CFormLabel htmlFor="opening_message">Opening Description</CFormLabel>
                 <CFormTextarea id="opening_message" name="opening_message" rows="3" value={formData.opening_message} onChange={handleChange}></CFormTextarea>
+              </div>
+              <div className="mb-3">
+                <CFormLabel htmlFor="parent_opening">Parent Opening</CFormLabel>
+                <CFormTextarea id="parent_opening" name="parent_opening" rows="3" value={formData.parent_opening} onChange={handleChange}></CFormTextarea>
               </div>
               <div className="mb-3">
                 <CFormLabel htmlFor="event_description">Event Description</CFormLabel>

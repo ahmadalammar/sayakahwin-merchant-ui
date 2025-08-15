@@ -12,8 +12,7 @@ const Events = () => {
   const itemsPerPage = 10
 
   useEffect(() => {
-    const merchantId = '03b97bfd-ac01-4067-b688-ed6a98d48bcf' // Please confirm how to get merchantId
-    fetch(`${config.API_BASE_URL}/merchant/${merchantId}/events`)
+    fetch(`${config.API_BASE_URL}/merchant/${config.merchantId}/events`)
       .then((response) => response.json())
       .then((data) => {
         const eventsData = data || []
@@ -56,8 +55,7 @@ const Events = () => {
   )
 
   const handleView = (eventId) => {
-    const merchantId = '03b97bfd-ac01-4067-b688-ed6a98d48bcf' // Please confirm how to get merchantId
-    const url = `${config.CARD_BASE_URL}/${merchantId}/${eventId}`
+    const url = `${config.CARD_BASE_URL}/${config.merchantId}/${eventId}`
     window.open(url, '_blank')
   }
 
@@ -103,7 +101,7 @@ const Events = () => {
                   color="warning"
                   size="sm"
                   onClick={() =>
-                    navigate(`/merchant/03b97bfd-ac01-4067-b688-ed6a98d48bcf/events/${event.id}`)
+                    navigate(`/merchant/${config.merchantId}/events/${event.id}`)
                   }
                 >
                   Update

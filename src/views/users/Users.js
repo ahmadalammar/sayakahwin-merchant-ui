@@ -10,8 +10,7 @@ const Users = () => {
   const itemsPerPage = 10
 
   useEffect(() => {
-    const merchantId = '03b97bfd-ac01-4067-b688-ed6a98d48bcf' // Please confirm how to get merchantId
-    fetch(`${config.API_BASE_URL}/merchant/${merchantId}/events`)
+    fetch(`${config.API_BASE_URL}/merchant/${config.merchantId}/events`)
       .then((response) => response.json())
       .then((data) => {
         setAllUsers(data)
@@ -53,8 +52,7 @@ const Users = () => {
   )
 
   const handleView = (userId) => {
-    const merchantId = '03b97bfd-ac01-4067-b688-ed6a98d48bcf' // Please confirm how to get merchantId
-    const url = `${config.CARD_BASE_URL}/${merchantId}/${userId}`
+    const url = `${config.CARD_BASE_URL}/${config.merchantId}/${userId}`
     window.open(url, '_blank')
   }
 

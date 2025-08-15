@@ -14,6 +14,7 @@ const CreateEvent = () => {
   const [contacts, setContacts] = useState([{ name: '', phone_number: '' }])
   const [errors, setErrors] = useState({})
   const [showGiftInfo, setShowGiftInfo] = useState(false)
+  const [showSalamOpening, setShowSalamOpening] = useState(true)
   const [loading, setLoading] = useState(false)
   const [modal, setModal] = useState({ show: false, message: '', color: '' })
   const [selectedTemplate, setSelectedTemplate] = useState(null)
@@ -23,6 +24,7 @@ const CreateEvent = () => {
     bride_name: '',
     bride_father_name: '',
     opening_message: '',
+    parent_opening: '',
     event_description: '',
     gifts_description: '',
     location_iframe_url: '',
@@ -63,7 +65,6 @@ const CreateEvent = () => {
 
     if (Object.keys(newErrors).length === 0) {
       setLoading(true)
-      const merchantId = '03b97bfd-ac01-4067-b688-ed6a98d48bcf' // Please confirm how to get merchantId
       const eventData = new FormData()
 
       // Append form data
@@ -73,6 +74,9 @@ const CreateEvent = () => {
 
       // Append template
       eventData.append('template_id', selectedTemplate)
+
+      // Append showSalamOpening
+      eventData.append('showSalamOpening', showSalamOpening)
 
       // Append schedules
       eventData.append('schedules', JSON.stringify(schedules))
@@ -93,7 +97,7 @@ const CreateEvent = () => {
       console.log('Submitting data:', Object.fromEntries(eventData.entries()))
 
       try {
-        const response = await fetch(`${config.API_BASE_URL}/merchant/${merchantId}/events`, {
+        const response = await fetch(`${config.API_BASE_URL}/merchant/${config.merchantId}/events`, {
           method: 'POST',
           body: eventData,
         })
@@ -167,9 +171,20 @@ const CreateEvent = () => {
               <strong>Descriptions</strong>
             </CCardHeader>
             <CCardBody>
+              <CFormCheck
+                className="mb-3"
+                id="showSalamOpening"
+                label="Show Salam Opening"
+                checked={showSalamOpening}
+                onChange={() => setShowSalamOpening(!showSalamOpening)}
+              />
               <div className="mb-3">
                 <CFormLabel htmlFor="opening_message">Opening Description</CFormLabel>
                 <CFormTextarea id="opening_message" name="opening_message" rows="3" value={formData.opening_message} onChange={handleChange}></CFormTextarea>
+              </div>
+              <div className="mb-3">
+                <CFormLabel htmlFor="parent_opening">Parent Opening</CFormLabel>
+                <CFormTextarea id="parent_opening" name="parent_opening" rows="3" value={formData.parent_opening} onChange={handleChange}></CFormTextarea>
               </div>
               <div className="mb-3">
                 <CFormLabel htmlFor="event_description">Event Description</CFormLabel>
