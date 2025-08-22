@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import config from '../../config'
+import api from '../../services/api'
 import { CButton, CTable, CTableHead, CTableRow, CTableHeaderCell, CTableBody, CTableDataCell, CFormInput, CPagination, CPaginationItem } from '@coreui/react'
 
 const Events = () => {
@@ -12,10 +13,9 @@ const Events = () => {
   const itemsPerPage = 10
 
   useEffect(() => {
-    fetch(`${config.API_BASE_URL}/merchant/${config.merchantId}/events`)
-      .then((response) => response.json())
-      .then((data) => {
-        const eventsData = data || []
+    api.get(`/merchant/${config.merchantId}/events`)
+      .then((response) => {
+        const eventsData = response.data || []
         setAllEvents(eventsData)
         setEvents(eventsData.slice(0, 10))
       })

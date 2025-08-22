@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import {
   CContainer,
@@ -17,19 +17,29 @@ import {
 import CIcon from '@coreui/icons-react'
 import {
   cilContrast,
+  cilLockLocked,
   cilMenu,
   cilMoon,
   cilSun,
+  cilUser,
 } from '@coreui/icons'
 
 import { AppBreadcrumb } from './index'
+import authService from 'src/services/auth'
 
 const AppHeader = () => {
   const headerRef = useRef()
   const { colorMode, setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
+  const navigate = useNavigate()
+  const user = authService.getCurrentUser()
 
   const dispatch = useDispatch()
   const sidebarShow = useSelector((state) => state.sidebarShow)
+
+  const handleLogout = () => {
+    authService.logout()
+    navigate('/login')
+  }
 
   useEffect(() => {
     document.addEventListener('scroll', () => {
@@ -102,6 +112,21 @@ const AppHeader = () => {
           <li className="nav-item py-1">
             <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
           </li>
+          <CDropdown variant="nav-item" placement="bottom-end">
+            <CDropdownToggle caret={false}>
+              {user && user.picture ? (
+                <img src={user.picture} alt="user" className="rounded-full h-8 w-8" />
+              ) : (
+                <CIcon icon={cilUser} size="lg" />
+              )}
+            </CDropdownToggle>
+            <CDropdownMenu>
+              <CDropdownItem onClick={handleLogout}>
+                <CIcon className="me-2" icon={cilLockLocked} size="lg" />
+                Logout
+              </CDropdownItem>
+            </CDropdownMenu>
+          </CDropdown>
         </CHeaderNav>
       </CContainer>
       <CContainer className="px-4" fluid>

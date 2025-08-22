@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { CButton, CCard, CCardBody, CCardHeader, CCol, CRow, CForm, CFormInput, CFormLabel, CFormTextarea, CFormCheck, CModal, CModalHeader, CModalBody, CModalFooter, CSpinner } from '@coreui/react'
 import config from '../../config'
+import api from '../../services/api'
 import EventSchedules from './EventSchedules'
 import EventItinerary from './EventItinerary'
 import EventGallery from './EventGallery'
@@ -97,20 +98,17 @@ const CreateEvent = () => {
       console.log('Submitting data:', Object.fromEntries(eventData.entries()))
 
       try {
-        const response = await fetch(`${config.API_BASE_URL}/merchant/${config.merchantId}/events`, {
-          method: 'POST',
-          body: eventData,
+        await api.post(`/merchant/${config.merchantId}/events`, eventData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
         })
-        const data = await response.json()
         setLoading(false)
-        if (response.ok) {
-          setModal({ show: true, message: 'Event created successfully!', color: 'success' })
-        } else {
-          setModal({ show: true, message: `Error: ${data.message}`, color: 'danger' })
-        }
+        setModal({ show: true, message: 'Event created successfully!', color: 'success' })
       } catch (error) {
         setLoading(false)
-        setModal({ show: true, message: `Error: ${error.message}`, color: 'danger' })
+        const message = error.response?.data?.message || error.message
+        setModal({ show: true, message: `Error: ${message}`, color: 'danger' })
       }
     }
   }

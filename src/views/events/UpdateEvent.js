@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { CButton, CCard, CCardBody, CCardHeader, CCol, CRow, CForm, CFormInput, CFormLabel, CFormTextarea, CFormCheck, CModal, CModalHeader, CModalBody, CModalFooter, CSpinner } from '@coreui/react'
 import { useParams } from 'react-router-dom'
 import config from '../../config'
+import api from '../../services/api'
 import EventSchedules from './EventSchedules'
 import EventItinerary from './EventItinerary'
 import EventGallery from './EventGallery'
@@ -40,41 +41,38 @@ const UpdateEvent = () => {
     const fetchEventData = async () => {
       setLoading(true)
       try {
-        const response = await fetch(`${config.API_BASE_URL}/${merchantId}/${eventId}`)
-        const data = await response.json()
-        if (response.ok) {
-          setFormData({
-            groom_name: data.groom_name,
-            groom_father_name: data.groom_father_name,
-            bride_name: data.bride_name,
-            bride_father_name: data.bride_father_name,
-            opening_message: data.opening_text,
-            parent_opening: data.parent_opening,
-            event_description: data.events_description,
-            gifts_description: data.gifts_description,
-            location_iframe_url: data.location_iframe_url,
-            account_bank_name: data.gifts_bank_name,
-            account_bank_number: data.gifts_account_number,
-            account_beneficiary_name: data.gifts_account_name,
-            closing_message: data.closing_description,
-          })
-          setSchedules(
-            (data.events || []).map((event) => ({
-              ...event,
-              date: event.date ? new Date(event.date).toISOString().slice(0, 16) : '',
-            })),
-          )
-          setItinerary(data.itineraries || [{ name: '', time: '' }])
-          setGallery(data.gallery_images || [])
-          setContacts(data.contacts || [{ name: '', phone_number: '' }])
-          setSelectedTemplate(data.template_id)
-          setShowGiftInfo(!!data.gifts_description)
-          setShowSalamOpening(data.show_salam_opening)
-        } else {
-          setModal({ show: true, message: `Error: ${data.message}`, color: 'danger' })
-        }
+        const response = await api.get(`/${merchantId}/${eventId}`)
+        const data = response.data
+        setFormData({
+          groom_name: data.groom_name,
+          groom_father_name: data.groom_father_name,
+          bride_name: data.bride_name,
+          bride_father_name: data.bride_father_name,
+          opening_message: data.opening_text,
+          parent_opening: data.parent_opening,
+          event_description: data.events_description,
+          gifts_description: data.gifts_description,
+          location_iframe_url: data.location_iframe_url,
+          account_bank_name: data.gifts_bank_name,
+          account_bank_number: data.gifts_account_number,
+          account_beneficiary_name: data.gifts_account_name,
+          closing_message: data.closing_description,
+        })
+        setSchedules(
+          (data.events || []).map((event) => ({
+            ...event,
+            date: event.date ? new Date(event.date).toISOString().slice(0, 16) : '',
+          })),
+        )
+        setItinerary(data.itineraries || [{ name: '', time: '' }])
+        setGallery(data.gallery_images || [])
+        setContacts(data.contacts || [{ name: '', phone_number: '' }])
+        setSelectedTemplate(data.template_id)
+        setShowGiftInfo(!!data.gifts_description)
+        setShowSalamOpening(data.show_salam_opening)
       } catch (error) {
-        setModal({ show: true, message: `Error: ${error.message}`, color: 'danger' })
+        const message = error.response?.data?.message || error.message
+        setModal({ show: true, message: `Error: ${message}`, color: 'danger' })
       }
       setLoading(false)
     }
@@ -159,20 +157,17 @@ const UpdateEvent = () => {
       console.log('Submitting data:', Object.fromEntries(eventData.entries()))
 
       try {
-        const response = await fetch(`${config.API_BASE_URL}/merchant/${merchantId}/events/${eventId}`, {
-          method: 'PUT',
-          body: eventData,
+        await api.put(`/merchant/${merchantId}/events/${eventId}`, eventData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
         })
-        const data = await response.json()
         setLoading(false)
-        if (response.ok) {
-          setModal({ show: true, message: 'Event updated successfully!', color: 'success' })
-        } else {
-          setModal({ show: true, message: `Error: ${data.message}`, color: 'danger' })
-        }
+        setModal({ show: true, message: 'Event updated successfully!', color: 'success' })
       } catch (error) {
         setLoading(false)
-        setModal({ show: true, message: `Error: ${error.message}`, color: 'danger' })
+        const message = error.response?.data?.message || error.message
+        setModal({ show: true, message: `Error: ${message}`, color: 'danger' })
       }
     }
   }
