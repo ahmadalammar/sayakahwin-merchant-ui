@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import config from '../../config'
 import { CButton, CTable, CTableHead, CTableRow, CTableHeaderCell, CTableBody, CTableDataCell, CFormInput, CPagination, CPaginationItem } from '@coreui/react'
+import api from 'src/services/api'
+import authService from 'src/services/auth'
+import config from 'src/config'
 
 const Users = () => {
   const [allUsers, setAllUsers] = useState([])
@@ -10,11 +12,11 @@ const Users = () => {
   const itemsPerPage = 10
 
   useEffect(() => {
-    fetch(`${config.API_BASE_URL}/merchant/${config.merchantId}/events`)
-      .then((response) => response.json())
-      .then((data) => {
-        setAllUsers(data)
-        setUsers(data.slice(0, 10))
+    const user = authService.getCurrentUser()
+    api.get(`/merchant/${user.merchantId}/events`)
+      .then((response) => {
+        setAllUsers(response.data)
+        setUsers(response.data.slice(0, 10))
       })
       .catch((error) => console.error('Error fetching users:', error))
   }, [])
@@ -52,7 +54,8 @@ const Users = () => {
   )
 
   const handleView = (userId) => {
-    const url = `${config.CARD_BASE_URL}/${config.merchantId}/${userId}`
+    const user = authService.getCurrentUser()
+    const url = `${config.CARD_BASE_URL}/${user.merchantId}/${userId}`
     window.open(url, '_blank')
   }
 

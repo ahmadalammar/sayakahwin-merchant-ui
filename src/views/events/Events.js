@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import config from '../../config'
 import api from '../../services/api'
 import { CButton, CTable, CTableHead, CTableRow, CTableHeaderCell, CTableBody, CTableDataCell, CFormInput, CPagination, CPaginationItem } from '@coreui/react'
+import authService from 'src/services/auth'
+import config from 'src/config'
 
 const Events = () => {
   const navigate = useNavigate()
@@ -13,7 +14,8 @@ const Events = () => {
   const itemsPerPage = 10
 
   useEffect(() => {
-    api.get(`/merchant/${config.merchantId}/events`)
+    const user = authService.getCurrentUser()
+    api.get(`/merchant/${user.merchantId}/events`)
       .then((response) => {
         const eventsData = response.data || []
         setAllEvents(eventsData)
@@ -55,7 +57,8 @@ const Events = () => {
   )
 
   const handleView = (eventId) => {
-    const url = `${config.CARD_BASE_URL}/${config.merchantId}/${eventId}`
+    const user = authService.getCurrentUser()
+    const url = `${config.CARD_BASE_URL}/${user.merchantId}/${eventId}`
     window.open(url, '_blank')
   }
 
@@ -100,9 +103,10 @@ const Events = () => {
                 <CButton
                   color="warning"
                   size="sm"
-                  onClick={() =>
-                    navigate(`/merchant/${config.merchantId}/events/${event.id}`)
-                  }
+                  onClick={() => {
+                    const user = authService.getCurrentUser()
+                    navigate(`/merchant/${user.merchantId}/events/${event.id}`)
+                  }}
                 >
                   Update
                 </CButton>

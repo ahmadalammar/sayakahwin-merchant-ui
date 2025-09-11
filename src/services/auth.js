@@ -1,7 +1,7 @@
 import api from './api'
 
 const login = async (username, password) => {
-  const response = await api.post('/auth/login', {
+  const response = await api.post('/auth/merchant/login', {
     username,
     password,
   })
@@ -12,7 +12,7 @@ const login = async (username, password) => {
 }
 
 const loginWithGoogle = async (googleToken) => {
-  const response = await api.post('/auth/google', {
+  const response = await api.post('/auth/merchant/google', {
     token: googleToken,
   })
   if (response.data.token) {

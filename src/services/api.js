@@ -10,6 +10,7 @@ api.interceptors.request.use(
   (config) => {
     const user = authService.getCurrentUser()
     if (user && user.token) {
+      console.log('user token', user.token)
       config.headers['Authorization'] = 'Bearer ' + user.token
     }
     return config

@@ -3,15 +3,16 @@ import { CCard, CCardBody, CCardHeader, CFormCheck } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilCheckCircle } from '@coreui/icons'
 import config from '../../config'
+import api from 'src/services/api'
 
 const TemplatePicker = ({ selectedTemplate, setSelectedTemplate }) => {
   const [templates, setTemplates] = useState([])
 
   useEffect(() => {
-    fetch(`${config.API_BASE_URL}/merchant/templates`)
-      .then((response) => response.json())
-      .then((data) => {
-        setTemplates(data)
+    api
+      .get(`/merchant/templates`)
+      .then((response) => {
+        setTemplates(response.data)
       })
       .catch((error) => console.error('Error fetching templates:', error))
   }, [])

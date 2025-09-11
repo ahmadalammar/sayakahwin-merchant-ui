@@ -2,6 +2,7 @@ import React, { useRef } from 'react'
 import { CButton, CCol, CRow } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilX } from '@coreui/icons'
+import config from 'src/config'
 
 const EventGallery = ({ images, setImages }) => {
   const fileInput = useRef(null)
@@ -27,7 +28,7 @@ const EventGallery = ({ images, setImages }) => {
         {images.map((image, index) => (
           <div key={index} className="position-relative me-2 mb-2">
             <img
-              src={typeof image === 'string' ? image : image.preview}
+              src={typeof image === 'string' ? image.replace(config.API_BASE_URL, '') : image.preview}
               alt="Preview"
               style={{ width: '150px', height: '150px', objectFit: 'cover' }}
             />

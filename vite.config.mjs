@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'node:path'
 import autoprefixer from 'autoprefixer'
+import config from './src/config'
 
 export default defineConfig(() => {
   return {
@@ -42,7 +43,10 @@ export default defineConfig(() => {
     server: {
       port: 3005,
       proxy: {
-        // https://vitejs.dev/config/server-options.html
+        '/uploads': {
+          target: config.API_BASE_URL,
+          changeOrigin: true,
+        },
       },
     },
   }

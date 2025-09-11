@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { CButton, CCard, CCardBody, CCardHeader, CCol, CRow, CForm, CFormInput, CFormLabel, CFormTextarea, CFormCheck, CModal, CModalHeader, CModalBody, CModalFooter, CSpinner } from '@coreui/react'
-import config from '../../config'
 import api from '../../services/api'
+import authService from 'src/services/auth'
 import EventSchedules from './EventSchedules'
 import EventItinerary from './EventItinerary'
 import EventGallery from './EventGallery'
@@ -98,7 +98,8 @@ const CreateEvent = () => {
       console.log('Submitting data:', Object.fromEntries(eventData.entries()))
 
       try {
-        await api.post(`/merchant/${config.merchantId}/events`, eventData, {
+        const user = authService.getCurrentUser()
+        await api.post(`/merchant/${user.merchantId}/events`, eventData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
