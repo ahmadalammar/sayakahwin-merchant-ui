@@ -58,11 +58,6 @@ const AppHeader = () => {
           <CIcon icon={cilMenu} size="lg" />
         </CHeaderToggler>
         <CHeaderNav className="d-none d-md-flex">
-          <CNavItem>
-            <CNavLink to="/dashboard" as={NavLink}>
-              Dashboard
-            </CNavLink>
-          </CNavItem>
         </CHeaderNav>
         <CHeaderNav className="ms-auto"></CHeaderNav>
         <CHeaderNav>
@@ -98,15 +93,6 @@ const AppHeader = () => {
               >
                 <CIcon className="me-2" icon={cilMoon} size="lg" /> Dark
               </CDropdownItem>
-              <CDropdownItem
-                active={colorMode === 'auto'}
-                className="d-flex align-items-center"
-                as="button"
-                type="button"
-                onClick={() => setColorMode('auto')}
-              >
-                <CIcon className="me-2" icon={cilContrast} size="lg" /> Auto
-              </CDropdownItem>
             </CDropdownMenu>
           </CDropdown>
           <li className="nav-item py-1">
@@ -114,11 +100,14 @@ const AppHeader = () => {
           </li>
           <CDropdown variant="nav-item" placement="bottom-end">
             <CDropdownToggle caret={false}>
-              {user && user.picture ? (
-                <img src={user.picture} alt="user" className="rounded-full h-8 w-8" />
-              ) : (
-                <CIcon icon={cilUser} size="lg" />
-              )}
+              <div className="d-flex align-items-center">
+                {user && user.picture ? (
+                  <img src={user.picture} alt="user" className="rounded-full h-8 w-8" />
+                ) : (
+                  <CIcon icon={cilUser} size="lg" />
+                )}
+                {user && <span className="ms-2">{user.name}</span>}
+              </div>
             </CDropdownToggle>
             <CDropdownMenu>
               <CDropdownItem onClick={handleLogout}>
