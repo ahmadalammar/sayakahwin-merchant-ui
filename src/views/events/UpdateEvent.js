@@ -59,17 +59,26 @@ const UpdateEvent = () => {
           closing_message: data.closing_description,
         })
         setSchedules(
-          (data.events || []).map((event) => ({
-            ...event,
-            date: event.date ? new Date(event.date).toISOString().slice(0, 16) : '',
-          })),
+          (data.events || []).map((event) => {
+            if (!event.date) return { ...event, date: '' }
+            const localDate = new Date(event.date)
+            const year = localDate.getFullYear()
+            const month = String(localDate.getMonth() + 1).padStart(2, '0')
+            const day = String(localDate.getDate()).padStart(2, '0')
+            const hours = String(localDate.getHours()).padStart(2, '0')
+            const minutes = String(localDate.getMinutes()).padStart(2, '0')
+            return {
+              ...event,
+              date: `${year}-${month}-${day}T${hours}:${minutes}`,
+            }
+          }),
         )
         setItinerary(data.itineraries || [{ name: '', time: '' }])
         setGallery(data.gallery_images || [])
         setContacts(data.contacts || [{ name: '', phone_number: '' }])
-        setSelectedTemplate(data.template_id)
+        setSelectedTemplate(data.templateId)
         setShowGiftInfo(!!data.gifts_description)
-        setShowSalamOpening(data.show_salam_opening)
+        setShowSalamOpening(data.showSalamOpening)
       } catch (error) {
         const message = error.response?.data?.message || error.message
         setModal({ show: true, message: `Error: ${message}`, color: 'danger' })
