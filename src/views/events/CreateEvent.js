@@ -24,6 +24,7 @@ const CreateEvent = () => {
     groom_father_name: '',
     bride_name: '',
     bride_father_name: '',
+    email: '',
     opening_message: '',
     parent_opening: '',
     event_description: '',
@@ -160,6 +161,12 @@ const CreateEvent = () => {
                   <CFormLabel htmlFor="bride_father_name">Bride's Father's Name *</CFormLabel>
                   <CFormInput type="text" id="bride_father_name" name="bride_father_name" value={formData.bride_father_name} onChange={handleChange} invalid={!!errors.bride_father_name} />
                   {errors.bride_father_name && <div className="text-danger">{errors.bride_father_name}</div>}
+                </CCol>
+              </CRow>
+              <CRow className="mb-3">
+                <CCol md={6}>
+                  <CFormLabel htmlFor="email">Email</CFormLabel>
+                  <CFormInput type="email" id="email" name="email" value={formData.email} onChange={handleChange} />
                 </CCol>
               </CRow>
             </CCardBody>

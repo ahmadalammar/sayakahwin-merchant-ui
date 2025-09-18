@@ -26,6 +26,7 @@ const UpdateEvent = () => {
     groom_father_name: '',
     bride_name: '',
     bride_father_name: '',
+    email: '',
     opening_message: '',
     parent_opening: '',
     event_description: '',
@@ -48,6 +49,7 @@ const UpdateEvent = () => {
           groom_father_name: data.groom_father_name,
           bride_name: data.bride_name,
           bride_father_name: data.bride_father_name,
+          email: data.email,
           opening_message: data.opening_text,
           parent_opening: data.parent_opening,
           event_description: data.events_description,
@@ -127,6 +129,7 @@ const UpdateEvent = () => {
       eventData.append('groom_father_name', formData.groom_father_name)
       eventData.append('bride_name', formData.bride_name)
       eventData.append('bride_father_name', formData.bride_father_name)
+      eventData.append('email', formData.email)
       eventData.append('opening_message', formData.opening_message)
       eventData.append('parent_opening', formData.parent_opening)
       eventData.append('event_description', formData.event_description)
@@ -227,6 +230,12 @@ const UpdateEvent = () => {
                   <CFormLabel htmlFor="bride_father_name">Bride's Father's Name *</CFormLabel>
                   <CFormInput type="text" id="bride_father_name" name="bride_father_name" value={formData.bride_father_name} onChange={handleChange} invalid={!!errors.bride_father_name} />
                   {errors.bride_father_name && <div className="text-danger">{errors.bride_father_name}</div>}
+                </CCol>
+              </CRow>
+              <CRow className="mb-3">
+                <CCol md={6}>
+                  <CFormLabel htmlFor="email">Email</CFormLabel>
+                  <CFormInput type="email" id="email" name="email" value={formData.email} onChange={handleChange} />
                 </CCol>
               </CRow>
             </CCardBody>
