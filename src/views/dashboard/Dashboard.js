@@ -13,7 +13,7 @@ import {
   CTableHeaderCell,
   CTableRow,
 } from '@coreui/react'
-import { CChartBar } from '@coreui/react-chartjs'
+import { CChartLine, CChartBar } from '@coreui/react-chartjs'
 import merchantService from '../../services/merchantService'
 
 const Dashboard = () => {
@@ -48,7 +48,7 @@ const Dashboard = () => {
     return <div>No dashboard data found.</div>
   }
 
-  const { license, upcomingEvents, trendyTemplates } = dashboardData
+  const { license, upcomingEvents, trendyTemplates, daily_chart_data } = dashboardData
 
   const creditUsage =
     ((license.total_credits - license.event_credits_remaining) / license.total_credits) * 100
@@ -81,6 +81,41 @@ const Dashboard = () => {
           </CCardBody>
         </CCard>
       </CCol>
+
+      {daily_chart_data && (
+        <CCol xs={12}>
+          <CCard className="mb-4">
+            <CCardHeader>
+              <strong>Daily Activity</strong>
+            </CCardHeader>
+            <CCardBody>
+              <CChartLine
+                data={{
+                  labels: daily_chart_data.map((d) => new Date(d.date).toLocaleDateString()),
+                  datasets: [
+                    {
+                      label: 'Events',
+                      backgroundColor: 'rgba(220, 220, 220, 0.2)',
+                      borderColor: 'rgba(220, 220, 220, 1)',
+                      pointBackgroundColor: 'rgba(220, 220, 220, 1)',
+                      pointBorderColor: '#fff',
+                      data: daily_chart_data.map((d) => d.events),
+                    },
+                    {
+                      label: 'Wishes',
+                      backgroundColor: 'rgba(151, 187, 205, 0.2)',
+                      borderColor: 'rgba(151, 187, 205, 1)',
+                      pointBackgroundColor: 'rgba(151, 187, 205, 1)',
+                      pointBorderColor: '#fff',
+                      data: daily_chart_data.map((d) => d.wishes),
+                    },
+                  ],
+                }}
+              />
+            </CCardBody>
+          </CCard>
+        </CCol>
+      )}
 
       <CCol md={6}>
         <CCard className="mb-4">
