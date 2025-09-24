@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  merchant-ui:
+    image: ${DOCKERHUB_USERNAME}/sayakahwin-merchant-ui:latest
+    env_file:
+      - .env
+    networks:
+      - app-network
+    expose:
+      - "3005"
+
+networks:
+  app-network:
+    external: true

@@ -1,0 +1,28 @@
+# Stage 1: Build the React application
+FROM node:18-alpine as builder
+
+WORKDIR /app
+
+ARG VITE_API_BASE_URL
+ARG VITE_CARD_BASE_URL
+
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_CARD_BASE_URL=$VITE_CARD_BASE_URL
+
+COPY package.json package-lock.json ./
+RUN npm install
+
+COPY . .
+RUN npm run build
+
+# Stage 2: Serve the static build with `serve`
+FROM node:18-alpine
+
+WORKDIR /app
+RUN npm install -g serve
+
+COPY --from=builder /app/build ./build
+
+EXPOSE 3005
+
+CMD ["serve", "-s", "build", "-l", "3005"]
