@@ -28,7 +28,13 @@ const EventGallery = ({ images, setImages }) => {
         {images.map((image, index) => (
           <div key={index} className="position-relative me-2 mb-2">
             <img
-              src={typeof image === 'string' ? image.replace(config.API_BASE_URL, '') : image.preview}
+              src={
+                typeof image === 'string'
+                  ? image.startsWith('http')
+                    ? image
+                    : `${config.API_BASE_URL}${image}`
+                  : image.preview
+              }
               alt="Preview"
               style={{ width: '150px', height: '150px', objectFit: 'cover' }}
             />
