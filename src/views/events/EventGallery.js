@@ -37,6 +37,7 @@ const EventGallery = ({ images, setImages }) => {
               }
               alt="Preview"
               style={{ width: '150px', height: '150px', objectFit: 'cover' }}
+              crossOrigin="anonymous"
             />
             <CButton
               color="danger"
