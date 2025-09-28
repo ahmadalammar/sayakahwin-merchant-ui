@@ -30,9 +30,9 @@ const EventGallery = ({ images, setImages }) => {
             <img
               src={
                 typeof image === 'string'
-                  ? image.includes('/uploads/')
-                    ? image.substring(image.indexOf('/uploads/'))
-                    : image
+                  ? image.startsWith('http')
+                    ? image
+                    : `${config.API_BASE_URL}${image}`
                   : image.preview
               }
               alt="Preview"
