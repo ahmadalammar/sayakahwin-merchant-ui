@@ -9,10 +9,18 @@ const EventGallery = ({ images, setImages }) => {
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files)
-    const newImages = files.map((file) => ({
-      file,
-      preview: URL.createObjectURL(file),
-    }))
+    const newImages = files
+      .filter((file) => {
+        if (file.size > 2 * 1024 * 1024) {
+          alert(`File ${file.name} is too large. Maximum size is 2MB.`)
+          return false
+        }
+        return true
+      })
+      .map((file) => ({
+        file,
+        preview: URL.createObjectURL(file),
+      }))
     setImages([...images, ...newImages])
   }
 
