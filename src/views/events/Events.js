@@ -22,6 +22,8 @@ import {
   CModalBody,
   CModalFooter,
 } from '@coreui/react'
+import CIcon from '@coreui/icons-react'
+import { cilInfo } from '@coreui/icons'
 import authService from 'src/services/auth'
 import config from 'src/config'
 
@@ -222,6 +224,29 @@ const Events = () => {
           <CModalTitle>User Credentials</CModalTitle>
         </CModalHeader>
         <CModalBody>
+          <div
+            className="p-3 mb-3"
+            style={{
+              backgroundColor: '#e6f7ff',
+              border: '1px solid #91d5ff',
+              borderRadius: '8px',
+              color: '#0050b3',
+            }}
+          >
+            <div className="d-flex align-items-center">
+              <CIcon icon={cilInfo} size="xl" className="me-3" />
+              <small>
+                Share this information with the event owner (the couple) to allow them to manage
+                guests, RSVPs, and more.
+              </small>
+            </div>
+          </div>
+          <p>
+            <strong>User Portal URL:</strong>{' '}
+            <a href="http://user.sayakahwin.com" target="_blank" rel="noopener noreferrer">
+              user.sayakahwin.com
+            </a>
+          </p>
           <p>
             <strong>Email:</strong> {credentials.email}
           </p>

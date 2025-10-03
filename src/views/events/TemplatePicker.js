@@ -45,7 +45,7 @@ const TemplatePicker = ({ selectedTemplate, setSelectedTemplate }) => {
                 }}
               >
                 <iframe
-                  src={`${config.CARD_BASE_URL}/preview/${template.id}`}
+                  src={`${config.CARD_BASE_URL}/preview/${template.id}?skipLandingPage=true&skipMusic=true`}
                   title={template.theme}
                   style={{
                     width: '166.67%',
