@@ -255,22 +255,40 @@ const CreateEvent = () => {
                     <CFormCheck
                       className="mb-3"
                       id="showSalamOpening"
-                      label="Show Salam Opening"
+                      label={
+                        <>
+                          Show Greeting
+                          <CTooltip content='Toggles whether to display the "Assalamualaikum" greeting at the start of the card.'>
+                            <CIcon icon={cilInfo} className="ms-1" />
+                          </CTooltip>
+                        </>
+                      }
                       checked={showSalamOpening}
                       onChange={() => setShowSalamOpening(!showSalamOpening)}
                     />
                     <div className="mb-3">
-                      <CFormLabel htmlFor="opening_message">Opening Description</CFormLabel>
+                      <CFormLabel htmlFor="opening_message">Opening Message</CFormLabel>
                       <CFormTextarea id="opening_message" name="opening_message" rows="3" value={formData.opening_message} onChange={handleChange}></CFormTextarea>
                     </div>
                     <div className="mb-3">
-                      <CFormLabel htmlFor="parent_opening">Parent Opening</CFormLabel>
+                      <CFormLabel htmlFor="parent_opening">Parent Message</CFormLabel>
                       <CFormTextarea id="parent_opening" name="parent_opening" rows="3" value={formData.parent_opening} onChange={handleChange}></CFormTextarea>
                     </div>
                     <div className="mb-3">
-                    <CFormLabel htmlFor="event_description">Event Description</CFormLabel>
-                    <CFormTextarea id="event_description" name="event_description" rows="3" value={formData.event_description} onChange={handleChange}></CFormTextarea>
-                  </div>
+                      <CFormLabel htmlFor="event_description">
+                        Event Details
+                        <CTooltip content="Add event more details here about location/parking..etc">
+                          <CIcon icon={cilInfo} className="ms-1" />
+                        </CTooltip>
+                      </CFormLabel>
+                      <CFormTextarea
+                        id="event_description"
+                        name="event_description"
+                        rows="3"
+                        value={formData.event_description}
+                        onChange={handleChange}
+                      ></CFormTextarea>
+                    </div>
                 </CCardBody>
               </CCard>
               <CCard className="mb-4">
@@ -350,11 +368,11 @@ const CreateEvent = () => {
 
           <CCard className="mb-4">
             <CCardHeader>
-              <strong>Closing Description</strong>
+              <strong>Closing Message</strong>
             </CCardHeader>
             <CCardBody>
               <div className="mb-3">
-                <CFormLabel htmlFor="closing_message">Closing Description</CFormLabel>
+                <CFormLabel htmlFor="closing_message">Closing Message</CFormLabel>
                 <CFormTextarea id="closing_message" name="closing_message" rows="3" value={formData.closing_message} onChange={handleChange}></CFormTextarea>
               </div>
             </CCardBody>
