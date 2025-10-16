@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { CButton, CCard, CCardBody, CCardHeader, CCol, CRow, CForm, CFormInput, CFormLabel, CFormTextarea, CFormCheck, CModal, CModalHeader, CModalBody, CModalFooter, CSpinner, CTooltip } from '@coreui/react'
+import { CButton, CCard, CCardBody, CCardHeader, CCol, CRow, CForm, CFormInput, CFormLabel, CFormTextarea, CFormCheck, CModal, CModalHeader, CModalBody, CModalFooter, CSpinner, CTooltip, CBadge } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilInfo } from '@coreui/icons'
 import { useParams } from 'react-router-dom'
@@ -10,6 +10,7 @@ import EventItinerary from './EventItinerary'
 import EventGallery from './EventGallery'
 import TemplatePicker from './TemplatePicker'
 import ContactForm from './ContactForm'
+import TagInput from '../../components/TagInput'
 
 const UpdateEvent = () => {
   const { merchantId, eventId } = useParams()
@@ -18,6 +19,7 @@ const UpdateEvent = () => {
   const [itinerary, setItinerary] = useState([{ name: '', time: '' }])
   const [gallery, setGallery] = useState([])
   const [contacts, setContacts] = useState([{ name: '', phone_number: '' }])
+  const [gifts, setGifts] = useState([])
   const [errors, setErrors] = useState({})
   const [showGiftInfo, setShowGiftInfo] = useState(false)
   const [showSalamOpening, setShowSalamOpening] = useState(true)
@@ -83,6 +85,7 @@ const UpdateEvent = () => {
         setItinerary(data.itineraries || [{ name: '', time: '' }])
         setGallery(data.gallery_images || [])
         setContacts(data.contacts || [{ name: '', phone_number: '' }])
+        setGifts(data.gifts || [])
         setSelectedTemplate(data.templateId)
         setShowGiftInfo(!!data.gifts_description)
         setShowSalamOpening(data.showSalamOpening)
@@ -195,6 +198,9 @@ const UpdateEvent = () => {
       })
       eventData.append('existing_gallery_images', JSON.stringify(existingImages))
 
+      // Append gifts
+      eventData.append('gifts', JSON.stringify(gifts))
+
       console.log('Submitting data:', Object.fromEntries(eventData.entries()))
 
       try {
@@ -229,23 +235,11 @@ const UpdateEvent = () => {
       <CForm onSubmit={handleSubmit}>
         <CRow>
           <CCol xs={12}>
-            {subscription && subscription.package_name.toLowerCase() === 'pro' ? (
-              <CFormCheck
-                className="mb-3"
-                id="useCustomTemplate"
-                label={
-                  <>
-                    Use Custom Template
-                    <CTooltip content="Check this box to upload your own custom-designed wedding card in image or video format.">
-                      <CIcon icon={cilInfo} className="ms-1" />
-                    </CTooltip>
-                  </>
-                }
-                checked={useCustomTemplate}
-                onChange={() => setUseCustomTemplate(!useCustomTemplate)}
-              />
-            ) : (
-              <CCard className="mb-4 text-center" style={{ backgroundColor: '#e3f2fd', border: '1px solid #bbdefb' }}>
+            {subscription && subscription.package_name.toLowerCase() !== 'pro' && (
+              <CCard
+                className="mb-4 text-center"
+                style={{ backgroundColor: '#e3f2fd', border: '1px solid #bbdefb' }}
+              >
                 <CCardBody>
                   <h5 className="card-title">Unlock Your Creativity!</h5>
                   <p className="card-text">
@@ -257,6 +251,21 @@ const UpdateEvent = () => {
                 </CCardBody>
               </CCard>
             )}
+            <CFormCheck
+              className="mb-3"
+              id="useCustomTemplate"
+              label={
+                <>
+                  Use Custom Template
+                  <CTooltip content="Check this box to upload your own custom-designed wedding card in image or video format.">
+                    <CIcon icon={cilInfo} className="ms-1" />
+                  </CTooltip>
+                </>
+              }
+              checked={useCustomTemplate}
+              onChange={() => setUseCustomTemplate(!useCustomTemplate)}
+              disabled={!subscription || subscription.package_name.toLowerCase() !== 'pro'}
+            />
             <CCard className="mb-4">
               <CCardHeader>
                 <strong>Couple Information</strong>
@@ -375,6 +384,9 @@ const UpdateEvent = () => {
               <CCard className="mb-4">
                 <CCardHeader>
                   <strong>Our Moments (Gallery)</strong>
+                  <CBadge color="info" className="ms-2">
+                    STANDARD
+                  </CBadge>
                 </CCardHeader>
                 <CCardBody>
                   <EventGallery images={gallery} setImages={setGallery} />
@@ -395,6 +407,9 @@ const UpdateEvent = () => {
           <CCard className="mb-4">
             <CCardHeader>
               <strong>Gift Information</strong>
+              <CBadge color="info" className="ms-2">
+                STANDARD
+              </CBadge>
             </CCardHeader>
             <CCardBody>
               <CFormCheck
@@ -407,21 +422,48 @@ const UpdateEvent = () => {
               {showGiftInfo && (
                 <>
                   <div className="mb-3">
+                    <TagInput tags={gifts} setTags={setGifts} label="Gifts" placeholder="Add a gift..." />
+                  </div>
+                  <div className="mb-3">
                     <CFormLabel htmlFor="gifts_description">Gift Description</CFormLabel>
-                    <CFormTextarea id="gifts_description" name="gifts_description" rows="3" value={formData.gifts_description} onChange={handleChange}></CFormTextarea>
+                    <CFormTextarea
+                      id="gifts_description"
+                      name="gifts_description"
+                      rows="3"
+                      value={formData.gifts_description}
+                      onChange={handleChange}
+                    ></CFormTextarea>
                   </div>
                   <CRow className="mb-3">
                     <CCol md={4}>
                       <CFormLabel htmlFor="account_bank_name">Bank Name</CFormLabel>
-                      <CFormInput type="text" id="account_bank_name" name="account_bank_name" value={formData.account_bank_name} onChange={handleChange} />
+                      <CFormInput
+                        type="text"
+                        id="account_bank_name"
+                        name="account_bank_name"
+                        value={formData.account_bank_name}
+                        onChange={handleChange}
+                      />
                     </CCol>
                     <CCol md={4}>
                       <CFormLabel htmlFor="account_bank_number">Bank Account Number</CFormLabel>
-                      <CFormInput type="text" id="account_bank_number" name="account_bank_number" value={formData.account_bank_number} onChange={handleChange} />
+                      <CFormInput
+                        type="text"
+                        id="account_bank_number"
+                        name="account_bank_number"
+                        value={formData.account_bank_number}
+                        onChange={handleChange}
+                      />
                     </CCol>
                     <CCol md={4}>
                       <CFormLabel htmlFor="account_beneficiary_name">Beneficiary Name</CFormLabel>
-                      <CFormInput type="text" id="account_beneficiary_name" name="account_beneficiary_name" value={formData.account_beneficiary_name} onChange={handleChange} />
+                      <CFormInput
+                        type="text"
+                        id="account_beneficiary_name"
+                        name="account_beneficiary_name"
+                        value={formData.account_beneficiary_name}
+                        onChange={handleChange}
+                      />
                     </CCol>
                   </CRow>
                 </>
