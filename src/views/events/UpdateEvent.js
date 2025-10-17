@@ -21,6 +21,7 @@ const UpdateEvent = () => {
   const [contacts, setContacts] = useState([{ name: '', phone_number: '' }])
   const [gifts, setGifts] = useState([])
   const [errors, setErrors] = useState({})
+  const [showWishlist, setShowWishlist] = useState(false)
   const [showGiftInfo, setShowGiftInfo] = useState(false)
   const [showSalamOpening, setShowSalamOpening] = useState(true)
   const [useCustomTemplate, setUseCustomTemplate] = useState(false)
@@ -87,7 +88,8 @@ const UpdateEvent = () => {
         setContacts(data.contacts || [{ name: '', phone_number: '' }])
         setGifts(data.gifts || [])
         setSelectedTemplate(data.templateId)
-        setShowGiftInfo(!!data.gifts_description)
+        setShowWishlist(data.show_wishlist)
+        setShowGiftInfo(data.show_money_gift)
         setShowSalamOpening(data.showSalamOpening)
         setUseCustomTemplate(data.theme_style === 'custom')
         if (data.theme_style === 'custom' && data.custom_url) {
@@ -160,6 +162,8 @@ const UpdateEvent = () => {
       eventData.append('account_bank_number', formData.account_bank_number)
       eventData.append('account_beneficiary_name', formData.account_beneficiary_name)
       eventData.append('closing_message', formData.closing_message)
+      eventData.append('show_money_gift', showGiftInfo)
+      eventData.append('show_wishlist', showWishlist)
 
       eventData.append('use_custom_template', useCustomTemplate)
 
@@ -406,7 +410,30 @@ const UpdateEvent = () => {
 
           <CCard className="mb-4">
             <CCardHeader>
-              <strong>Gift Information</strong>
+              <strong>Wishes</strong>
+              <CBadge color="info" className="ms-2">
+                STANDARD
+              </CBadge>
+            </CCardHeader>
+            <CCardBody>
+              <CFormCheck
+                className="mb-3"
+                id="showWishlist"
+                label="Enable Wishlist"
+                checked={showWishlist}
+                onChange={() => setShowWishlist(!showWishlist)}
+              />
+              {showWishlist && (
+                <div className="mb-3">
+                  <TagInput tags={gifts} setTags={setGifts} label="Wishes" placeholder="Add a wish..." />
+                </div>
+              )}
+            </CCardBody>
+          </CCard>
+
+          <CCard className="mb-4">
+            <CCardHeader>
+              <strong>Money Gift Information</strong>
               <CBadge color="info" className="ms-2">
                 STANDARD
               </CBadge>
@@ -415,17 +442,14 @@ const UpdateEvent = () => {
               <CFormCheck
                 className="mb-3"
                 id="showGiftInfo"
-                label="Add Gift Information"
+                label="Add Money Gift Information"
                 checked={showGiftInfo}
                 onChange={() => setShowGiftInfo(!showGiftInfo)}
               />
               {showGiftInfo && (
                 <>
                   <div className="mb-3">
-                    <TagInput tags={gifts} setTags={setGifts} label="Gifts" placeholder="Add a gift..." />
-                  </div>
-                  <div className="mb-3">
-                    <CFormLabel htmlFor="gifts_description">Gift Description</CFormLabel>
+                    <CFormLabel htmlFor="gifts_description">Description</CFormLabel>
                     <CFormTextarea
                       id="gifts_description"
                       name="gifts_description"
