@@ -11,8 +11,8 @@ const EventGallery = ({ images, setImages }) => {
     const files = Array.from(e.target.files)
     const newImages = files
       .filter((file) => {
-        if (file.size > 5 * 1024 * 1024) {
-          alert(`File ${file.name} is too large. Maximum size is 5MB.`)
+        if (file.size > 15 * 1024 * 1024) {
+          alert(`File ${file.name} is too large. Maximum size is 15MB.`)
           return false
         }
         return true
