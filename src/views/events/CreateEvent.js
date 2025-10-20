@@ -9,6 +9,7 @@ import EventItinerary from './EventItinerary'
 import EventGallery from './EventGallery'
 import TemplatePicker from './TemplatePicker'
 import ContactForm from './ContactForm'
+import QRCodeUpload from './QRCodeUpload'
 import TagInput from '../../components/TagInput'
 
 const CreateEvent = () => {
@@ -18,6 +19,7 @@ const CreateEvent = () => {
   const [gallery, setGallery] = useState([])
   const [contacts, setContacts] = useState([{ name: '', phone_number: '' }])
   const [gifts, setGifts] = useState([])
+  const [paymentQRCode, setPaymentQRCode] = useState(null)
   const [errors, setErrors] = useState({})
   const [showWishlist, setShowWishlist] = useState(false)
   const [showGiftInfo, setShowGiftInfo] = useState(false)
@@ -136,6 +138,10 @@ const CreateEvent = () => {
       // Append gifts
       eventData.append('gifts', JSON.stringify(gifts))
 
+      if (paymentQRCode && paymentQRCode.file) {
+        eventData.append('payment_qr_code', paymentQRCode.file)
+      }
+
       console.log('Submitting data:', Object.fromEntries(eventData.entries()))
 
       try {
@@ -171,7 +177,7 @@ const CreateEvent = () => {
       <CForm onSubmit={handleSubmit}>
         <CRow>
           <CCol xs={12}>
-            {subscription && subscription.package_name.toLowerCase() !== 'pro' && (
+            {/* {subscription && subscription.package_name.toLowerCase() !== 'pro' && (
               <CCard
                 className="mb-4 text-center"
                 style={{ backgroundColor: '#e3f2fd', border: '1px solid #bbdefb' }}
@@ -201,7 +207,7 @@ const CreateEvent = () => {
               checked={useCustomTemplate}
               onChange={() => setUseCustomTemplate(!useCustomTemplate)}
               disabled={!subscription || subscription.package_name.toLowerCase() !== 'pro'}
-            />
+            /> */}
             <CCard className="mb-4">
               <CCardHeader>
                 <strong>Couple Information</strong>
@@ -416,6 +422,10 @@ const CreateEvent = () => {
                       />
                     </CCol>
                   </CRow>
+                  <div className="mb-3">
+                    <CFormLabel>QR Code (Optional)</CFormLabel>
+                    <QRCodeUpload image={paymentQRCode} setImage={setPaymentQRCode} />
+                  </div>
                 </>
               )}
             </CCardBody>
