@@ -213,7 +213,7 @@ const UpdateEvent = () => {
       if (paymentQRCode && paymentQRCode.file) {
         eventData.append('payment_qr_code', paymentQRCode.file)
       } else if (typeof paymentQRCode === 'string') {
-        eventData.append('existing_payment_qr_code', paymentQRCode)
+        eventData.append('existing_payment_qr_code_url', paymentQRCode)
       }
 
 
