@@ -1,7 +1,29 @@
 import React, { useState, useEffect } from 'react'
-import { CButton, CCard, CCardBody, CCardHeader, CCol, CRow, CForm, CFormInput, CFormLabel, CFormTextarea, CFormCheck, CModal, CModalHeader, CModalBody, CModalFooter, CSpinner, CTooltip, CBadge } from '@coreui/react'
+import {
+  CButton,
+  CCard,
+  CCardBody,
+  CCardHeader,
+  CCol,
+  CRow,
+  CForm,
+  CFormInput,
+  CFormLabel,
+  CFormTextarea,
+  CFormCheck,
+  CModal,
+  CModalHeader,
+  CModalTitle,
+  CModalBody,
+  CModalFooter,
+  CSpinner,
+  CTooltip,
+  CBadge,
+  CContainer,
+  CAlert,
+} from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilInfo } from '@coreui/icons'
+import { cilInfo, cilHeart, cilCalendar, cilImage, cilEnvelopeClosed, cilCreditCard, cilPhone, cilCheckCircle, cilWarning } from '@coreui/icons'
 import api from '../../services/api'
 import authService from 'src/services/auth'
 import EventSchedules from './EventSchedules'
@@ -11,6 +33,26 @@ import TemplatePicker from './TemplatePicker'
 import ContactForm from './ContactForm'
 import QRCodeUpload from './QRCodeUpload'
 import TagInput from '../../components/TagInput'
+import PageTitle from '../../components/PageTitle'
+
+// SectionCard component moved outside to prevent re-creation on every render
+const SectionCard = ({ icon, title, subtitle, badge, children }) => (
+  <CCard className="mb-4">
+    <CCardHeader>
+      <div className="d-flex justify-content-between align-items-center">
+        <div className="d-flex align-items-center gap-2">
+          {icon && <CIcon icon={icon} className="text-purple" size="lg" />}
+          <div>
+            <strong>{title}</strong>
+            {subtitle && <p className="text-muted mb-0" style={{ fontSize: '0.8125rem' }}>{subtitle}</p>}
+          </div>
+        </div>
+        {badge && <CBadge color="info">{badge}</CBadge>}
+      </div>
+    </CCardHeader>
+    <CCardBody>{children}</CCardBody>
+  </CCard>
+)
 
 const CreateEvent = () => {
   const [subscription, setSubscription] = useState(null)
@@ -62,6 +104,10 @@ const CreateEvent = () => {
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData({ ...formData, [name]: value })
+    // Clear error when user types
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: null })
+    }
   }
 
   const handleFileChange = (e) => {
@@ -103,7 +149,6 @@ const CreateEvent = () => {
       }
       eventData.append('show_money_gift', showGiftInfo)
       eventData.append('show_wishlist', showWishlist)
-
       eventData.append('use_custom_template', useCustomTemplate)
 
       if (useCustomTemplate) {
@@ -111,353 +156,370 @@ const CreateEvent = () => {
           eventData.append('custom_theme', customThemeFile)
         }
       } else {
-        // Append template
         eventData.append('template_id', selectedTemplate)
       }
 
-      // Append showSalamOpening
       eventData.append('showSalamOpening', showSalamOpening)
-
-      // Append schedules
       eventData.append('schedules', JSON.stringify(schedules))
 
-      // Append itinerary
       const filteredItinerary = itinerary.filter((item) => item.name.trim() !== '')
       eventData.append('itineraries', JSON.stringify(filteredItinerary))
-
-      // Append contacts
       eventData.append('contacts', JSON.stringify(contacts))
 
-      // Append gallery images
       gallery.forEach((image) => {
         if (image.file) {
           eventData.append('gallery_images', image.file)
         }
       })
 
-      // Append gifts
       eventData.append('gifts', JSON.stringify(gifts))
 
       if (paymentQRCode && paymentQRCode.file) {
         eventData.append('payment_qr_code', paymentQRCode.file)
       }
 
-      console.log('Submitting data:', Object.fromEntries(eventData.entries()))
-
       try {
         const user = authService.getCurrentUser()
         await api.post(`/merchant/${user.merchantId}/events`, eventData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+          headers: { 'Content-Type': 'multipart/form-data' },
         })
         setLoading(false)
-        setModal({ show: true, message: 'Event created successfully!', color: 'success' })
+        setModal({ show: true, message: 'Event created successfully! Your wedding card is now ready.', color: 'success' })
       } catch (error) {
         setLoading(false)
         const message = error.response?.data?.message || error.message
         setModal({ show: true, message: `Error: ${message}`, color: 'danger' })
       }
+    } else {
+      // Scroll to first error
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
   return (
     <>
+      <PageTitle title="Create Event" description="Create a new wedding invitation card" />
+      
+      {/* Success/Error Modal */}
       <CModal visible={modal.show} onClose={() => setModal({ ...modal, show: false })}>
-        <CModalHeader onClose={() => setModal({ ...modal, show: false })}>
-          {modal.color === 'success' ? 'Success' : 'Error'}
+        <CModalHeader>
+          <CModalTitle className="d-flex align-items-center gap-2">
+            <CIcon 
+              icon={modal.color === 'success' ? cilCheckCircle : cilWarning} 
+              className={modal.color === 'success' ? 'text-success' : 'text-danger'}
+            />
+            {modal.color === 'success' ? 'Success' : 'Error'}
+          </CModalTitle>
         </CModalHeader>
-        <CModalBody>{modal.message}</CModalBody>
+        <CModalBody>
+          <CAlert color={modal.color} className="mb-0">
+            {modal.message}
+          </CAlert>
+        </CModalBody>
         <CModalFooter>
-          <CButton color="secondary" onClick={() => setModal({ ...modal, show: false })}>
-            Close
+          <CButton 
+            color={modal.color === 'success' ? 'success' : 'secondary'} 
+            onClick={() => setModal({ ...modal, show: false })}
+          >
+            {modal.color === 'success' ? 'Done' : 'Close'}
           </CButton>
         </CModalFooter>
       </CModal>
-      <CForm onSubmit={handleSubmit}>
-        <CRow>
-          <CCol xs={12}>
-            {/* {subscription && subscription.package_name.toLowerCase() !== 'pro' && (
-              <CCard
-                className="mb-4 text-center"
-                style={{ backgroundColor: '#e3f2fd', border: '1px solid #bbdefb' }}
-              >
-                <CCardBody>
-                  <h5 className="card-title">Unlock Your Creativity!</h5>
-                  <p className="card-text">
-                    Want to use your own stunning wedding card design? The custom theme feature is exclusive to our Pro plan.
-                  </p>
-                  <CButton href="https://sayakahwin.com" target="_blank" color="primary">
-                    Upgrade to Pro Now!
-                  </CButton>
-                </CCardBody>
-              </CCard>
-            )}
+
+      <CContainer fluid>
+        {/* Page Header */}
+        <div className="dashboard-welcome mb-4">
+          <h2>Create New Wedding Card</h2>
+          <p>Fill in the details below to create a beautiful wedding invitation</p>
+        </div>
+
+        {/* Validation Errors Summary */}
+        {Object.keys(errors).length > 0 && (
+          <CAlert color="danger" className="mb-4">
+            <div className="d-flex align-items-center gap-2">
+              <CIcon icon={cilWarning} />
+              <strong>Please fix the errors below before submitting</strong>
+            </div>
+          </CAlert>
+        )}
+
+        <CForm onSubmit={handleSubmit}>
+          {/* Template Selection */}
+          {!useCustomTemplate && (
+            <>
+              <TemplatePicker selectedTemplate={selectedTemplate} setSelectedTemplate={setSelectedTemplate} />
+              {errors.template && <CAlert color="danger" className="mb-4">{errors.template}</CAlert>}
+            </>
+          )}
+
+          {/* Couple Information */}
+          <SectionCard icon={cilHeart} title="Couple Information" subtitle="Enter the bride and groom details">
+            <CRow className="g-3">
+              <CCol md={6}>
+                <CFormLabel htmlFor="groom_name">Groom's Name *</CFormLabel>
+                <CFormInput 
+                  type="text" 
+                  id="groom_name" 
+                  name="groom_name" 
+                  placeholder="Enter groom's full name"
+                  value={formData.groom_name} 
+                  onChange={handleChange} 
+                  invalid={!!errors.groom_name} 
+                />
+                {errors.groom_name && <div className="text-danger mt-1" style={{ fontSize: '0.8125rem' }}>{errors.groom_name}</div>}
+              </CCol>
+              <CCol md={6}>
+                <CFormLabel htmlFor="groom_father_name">Groom's Father's Name *</CFormLabel>
+                <CFormInput 
+                  type="text" 
+                  id="groom_father_name" 
+                  name="groom_father_name" 
+                  placeholder="Enter groom's father's name"
+                  value={formData.groom_father_name} 
+                  onChange={handleChange} 
+                  invalid={!!errors.groom_father_name} 
+                />
+                {errors.groom_father_name && <div className="text-danger mt-1" style={{ fontSize: '0.8125rem' }}>{errors.groom_father_name}</div>}
+              </CCol>
+              <CCol md={6}>
+                <CFormLabel htmlFor="bride_name">Bride's Name *</CFormLabel>
+                <CFormInput 
+                  type="text" 
+                  id="bride_name" 
+                  name="bride_name" 
+                  placeholder="Enter bride's full name"
+                  value={formData.bride_name} 
+                  onChange={handleChange} 
+                  invalid={!!errors.bride_name} 
+                />
+                {errors.bride_name && <div className="text-danger mt-1" style={{ fontSize: '0.8125rem' }}>{errors.bride_name}</div>}
+              </CCol>
+              <CCol md={6}>
+                <CFormLabel htmlFor="bride_father_name">Bride's Father's Name *</CFormLabel>
+                <CFormInput 
+                  type="text" 
+                  id="bride_father_name" 
+                  name="bride_father_name" 
+                  placeholder="Enter bride's father's name"
+                  value={formData.bride_father_name} 
+                  onChange={handleChange} 
+                  invalid={!!errors.bride_father_name} 
+                />
+                {errors.bride_father_name && <div className="text-danger mt-1" style={{ fontSize: '0.8125rem' }}>{errors.bride_father_name}</div>}
+              </CCol>
+              <CCol md={6}>
+                <CFormLabel htmlFor="email">Email Address *</CFormLabel>
+                <CFormInput 
+                  type="email" 
+                  id="email" 
+                  name="email" 
+                  placeholder="couple@email.com"
+                  value={formData.email} 
+                  onChange={handleChange} 
+                  invalid={!!errors.email} 
+                />
+                {errors.email && <div className="text-danger mt-1" style={{ fontSize: '0.8125rem' }}>{errors.email}</div>}
+              </CCol>
+            </CRow>
+          </SectionCard>
+
+          {/* Descriptions */}
+          {!useCustomTemplate && (
+            <SectionCard icon={cilEnvelopeClosed} title="Card Messages" subtitle="Customize the messages on your wedding card">
+              <CFormCheck
+                className="mb-4"
+                id="showSalamOpening"
+                label={
+                  <span className="d-flex align-items-center gap-1">
+                    Show "Assalamualaikum" Greeting
+                    <CTooltip content='Display the Islamic greeting at the start of the card'>
+                      <CIcon icon={cilInfo} className="text-muted" size="sm" />
+                    </CTooltip>
+                  </span>
+                }
+                checked={showSalamOpening}
+                onChange={() => setShowSalamOpening(!showSalamOpening)}
+              />
+              <CRow className="g-3">
+                <CCol xs={12}>
+                  <CFormLabel htmlFor="opening_message">Opening Message</CFormLabel>
+                  <CFormTextarea 
+                    id="opening_message" 
+                    name="opening_message" 
+                    rows="3" 
+                    placeholder="Write a warm opening message for your guests..."
+                    value={formData.opening_message} 
+                    onChange={handleChange}
+                  />
+                </CCol>
+                <CCol xs={12}>
+                  <CFormLabel htmlFor="parent_opening">Parent Message</CFormLabel>
+                  <CFormTextarea 
+                    id="parent_opening" 
+                    name="parent_opening" 
+                    rows="3" 
+                    placeholder="Message from the parents..."
+                    value={formData.parent_opening} 
+                    onChange={handleChange}
+                  />
+                </CCol>
+                <CCol xs={12}>
+                  <CFormLabel htmlFor="event_description">
+                    <span className="d-flex align-items-center gap-1">
+                      Event Details
+                      <CTooltip content="Additional details about location, parking, dress code, etc.">
+                        <CIcon icon={cilInfo} className="text-muted" size="sm" />
+                      </CTooltip>
+                    </span>
+                  </CFormLabel>
+                  <CFormTextarea
+                    id="event_description"
+                    name="event_description"
+                    rows="3"
+                    placeholder="Parking available at venue, dress code: smart casual..."
+                    value={formData.event_description}
+                    onChange={handleChange}
+                  />
+                </CCol>
+              </CRow>
+            </SectionCard>
+          )}
+
+          {/* Event Schedules */}
+          <SectionCard icon={cilCalendar} title="Event Schedules" subtitle="Add your wedding ceremony dates and venues">
+            <EventSchedules schedules={schedules} setSchedules={setSchedules} errors={errors} />
+          </SectionCard>
+
+          {/* Itinerary */}
+          {!useCustomTemplate && (
+            <SectionCard icon={cilCalendar} title="Event Itinerary" subtitle="Timeline of activities (Optional)">
+              <EventItinerary itinerary={itinerary} setItinerary={setItinerary} />
+            </SectionCard>
+          )}
+
+          {/* Gallery */}
+          {!useCustomTemplate && (
+            <SectionCard icon={cilImage} title="Our Moments" subtitle="Upload photos of the couple" badge="OPTIONAL">
+              <EventGallery images={gallery} setImages={setGallery} />
+            </SectionCard>
+          )}
+
+          {/* Wishlist */}
+          <SectionCard icon={cilHeart} title="Wishes & Gifts" subtitle="Allow guests to send wishes" badge="OPTIONAL">
             <CFormCheck
               className="mb-3"
-              id="useCustomTemplate"
-              label={
-                <>
-                  Use Custom Template
-                  <CTooltip content="Check this box to upload your own custom-designed wedding card in image or video format.">
-                    <CIcon icon={cilInfo} className="ms-1" />
-                  </CTooltip>
-                </>
-              }
-              checked={useCustomTemplate}
-              onChange={() => setUseCustomTemplate(!useCustomTemplate)}
-              disabled={!subscription || subscription.package_name.toLowerCase() !== 'pro'}
-            /> */}
-            <CCard className="mb-4">
-              <CCardHeader>
-                <strong>Couple Information</strong>
-              </CCardHeader>
-              <CCardBody>
-                <CRow className="mb-3">
-                  <CCol md={6}>
-                    <CFormLabel htmlFor="groom_name">Groom's Name *</CFormLabel>
-                    <CFormInput type="text" id="groom_name" name="groom_name" value={formData.groom_name} onChange={handleChange} invalid={!!errors.groom_name} />
-                    {errors.groom_name && <div className="text-danger">{errors.groom_name}</div>}
-                  </CCol>
-                  <CCol md={6}>
-                    <CFormLabel htmlFor="groom_father_name">Groom's Father's Name *</CFormLabel>
-                    <CFormInput type="text" id="groom_father_name" name="groom_father_name" value={formData.groom_father_name} onChange={handleChange} invalid={!!errors.groom_father_name} />
-                    {errors.groom_father_name && <div className="text-danger">{errors.groom_father_name}</div>}
-                  </CCol>
-                </CRow>
-                <CRow className="mb-3">
-                  <CCol md={6}>
-                    <CFormLabel htmlFor="bride_name">Bride's Name *</CFormLabel>
-                    <CFormInput type="text" id="bride_name" name="bride_name" value={formData.bride_name} onChange={handleChange} invalid={!!errors.bride_name} />
-                    {errors.bride_name && <div className="text-danger">{errors.bride_name}</div>}
-                  </CCol>
-                  <CCol md={6}>
-                    <CFormLabel htmlFor="bride_father_name">Bride's Father's Name *</CFormLabel>
-                    <CFormInput type="text" id="bride_father_name" name="bride_father_name" value={formData.bride_father_name} onChange={handleChange} invalid={!!errors.bride_father_name} />
-                    {errors.bride_father_name && <div className="text-danger">{errors.bride_father_name}</div>}
-                  </CCol>
-                </CRow>
-                <CRow className="mb-3">
-                  <CCol md={6}>
-                    <CFormLabel htmlFor="email">Email *</CFormLabel>
-                    <CFormInput type="email" id="email" name="email" value={formData.email} onChange={handleChange} invalid={!!errors.email} />
-                    {errors.email && <div className="text-danger">{errors.email}</div>}
-                  </CCol>
-                </CRow>
-              </CCardBody>
-            </CCard>
-
-            {useCustomTemplate ? (
-              <CCard className="mb-4">
-                <CCardHeader>
-                  <strong>Custom Theme</strong>
-                </CCardHeader>
-                <CCardBody>
-                  <div className="mb-3">
-                    <CFormLabel htmlFor="custom_theme">Upload Image/Video</CFormLabel>
-                    <CFormInput type="file" id="custom_theme" name="custom_theme" onChange={handleFileChange} />
-                  </div>
-                </CCardBody>
-              </CCard>
-            ) : (
-              <>
-                <TemplatePicker selectedTemplate={selectedTemplate} setSelectedTemplate={setSelectedTemplate} />
-                {errors.template && <div className="text-danger mb-3">{errors.template}</div>}
-
-                <CCard className="mb-4">
-                  <CCardHeader>
-                    <strong>Descriptions</strong>
-                  </CCardHeader>
-                  <CCardBody>
-                    <CFormCheck
-                      className="mb-3"
-                      id="showSalamOpening"
-                      label={
-                        <>
-                          Show Greeting
-                          <CTooltip content='Toggles whether to display the "Assalamualaikum" greeting at the start of the card.'>
-                            <CIcon icon={cilInfo} className="ms-1" />
-                          </CTooltip>
-                        </>
-                      }
-                      checked={showSalamOpening}
-                      onChange={() => setShowSalamOpening(!showSalamOpening)}
-                    />
-                    <div className="mb-3">
-                      <CFormLabel htmlFor="opening_message">Opening Message</CFormLabel>
-                      <CFormTextarea id="opening_message" name="opening_message" rows="3" value={formData.opening_message} onChange={handleChange}></CFormTextarea>
-                    </div>
-                    <div className="mb-3">
-                      <CFormLabel htmlFor="parent_opening">Parent Message</CFormLabel>
-                      <CFormTextarea id="parent_opening" name="parent_opening" rows="3" value={formData.parent_opening} onChange={handleChange}></CFormTextarea>
-                    </div>
-                    <div className="mb-3">
-                      <CFormLabel htmlFor="event_description">
-                        Event Details
-                        <CTooltip content="Add event more details here about location/parking..etc">
-                          <CIcon icon={cilInfo} className="ms-1" />
-                        </CTooltip>
-                      </CFormLabel>
-                      <CFormTextarea
-                        id="event_description"
-                        name="event_description"
-                        rows="3"
-                        value={formData.event_description}
-                        onChange={handleChange}
-                      ></CFormTextarea>
-                    </div>
-                </CCardBody>
-              </CCard>
-              <CCard className="mb-4">
-                <CCardHeader>
-                  <strong>Event Itinerary (Optional)</strong>
-                </CCardHeader>
-                <CCardBody>
-                  <EventItinerary itinerary={itinerary} setItinerary={setItinerary} />
-                </CCardBody>
-              </CCard>
-
-              <CCard className="mb-4">
-                <CCardHeader>
-                  <strong>Our Moments (Gallery)</strong>
-                  <CBadge color="info" className="ms-2">
-                    STANDARD
-                  </CBadge>
-                </CCardHeader>
-                <CCardBody>
-                  <EventGallery images={gallery} setImages={setGallery} />
-                </CCardBody>
-              </CCard>
-              </>
+              id="showWishlist"
+              label="Enable Guest Wishlist"
+              checked={showWishlist}
+              onChange={() => setShowWishlist(!showWishlist)}
+            />
+            {showWishlist && (
+              <div className="mt-3">
+                <TagInput tags={gifts} setTags={setGifts} label="Suggested Wishes" placeholder="Add a wish suggestion..." />
+              </div>
             )}
+          </SectionCard>
 
-          <CCard className="mb-4">
-            <CCardHeader>
-              <strong>Event Schedules</strong>
-            </CCardHeader>
-            <CCardBody>
-              <EventSchedules schedules={schedules} setSchedules={setSchedules} />
-            </CCardBody>
-          </CCard>
-
-          <CCard className="mb-4">
-            <CCardHeader>
-              <strong>Wishes</strong>
-              <CBadge color="info" className="ms-2">
-                STANDARD
-              </CBadge>
-            </CCardHeader>
-            <CCardBody>
-              <CFormCheck
-                className="mb-3"
-                id="showWishlist"
-                label="Enable Wishlist"
-                checked={showWishlist}
-                onChange={() => setShowWishlist(!showWishlist)}
-              />
-              {showWishlist && (
-                <div className="mb-3">
-                  <TagInput tags={gifts} setTags={setGifts} label="Wishes" placeholder="Add a wish..." />
-                </div>
-              )}
-            </CCardBody>
-          </CCard>
-
-          <CCard className="mb-4">
-            <CCardHeader>
-              <strong>Money Gift Information</strong>
-              <CBadge color="info" className="ms-2">
-                STANDARD
-              </CBadge>
-            </CCardHeader>
-            <CCardBody>
-              <CFormCheck
-                className="mb-3"
-                id="showGiftInfo"
-                label="Add Money Gift Information"
-                checked={showGiftInfo}
-                onChange={() => setShowGiftInfo(!showGiftInfo)}
-              />
-              {showGiftInfo && (
-                <>
-                  <div className="mb-3">
-                    <CFormLabel htmlFor="gifts_description">Description</CFormLabel>
+          {/* Money Gift */}
+          <SectionCard icon={cilCreditCard} title="Money Gift" subtitle="Add bank account for monetary gifts" badge="OPTIONAL">
+            <CFormCheck
+              className="mb-3"
+              id="showGiftInfo"
+              label="Enable Money Gift Section"
+              checked={showGiftInfo}
+              onChange={() => setShowGiftInfo(!showGiftInfo)}
+            />
+            {showGiftInfo && (
+              <div className="mt-3">
+                <CRow className="g-3">
+                  <CCol xs={12}>
+                    <CFormLabel htmlFor="gifts_description">Gift Description</CFormLabel>
                     <CFormTextarea
                       id="gifts_description"
                       name="gifts_description"
-                      rows="3"
+                      rows="2"
+                      placeholder="Your presence is the greatest gift, but if you wish to bless us..."
                       value={formData.gifts_description}
                       onChange={handleChange}
-                    ></CFormTextarea>
-                  </div>
-                  <CRow className="mb-3">
-                    <CCol md={4}>
-                      <CFormLabel htmlFor="account_bank_name">Bank Name</CFormLabel>
-                      <CFormInput
-                        type="text"
-                        id="account_bank_name"
-                        name="account_bank_name"
-                        value={formData.account_bank_name}
-                        onChange={handleChange}
-                      />
-                    </CCol>
-                    <CCol md={4}>
-                      <CFormLabel htmlFor="account_bank_number">Bank Account Number</CFormLabel>
-                      <CFormInput
-                        type="text"
-                        id="account_bank_number"
-                        name="account_bank_number"
-                        value={formData.account_bank_number}
-                        onChange={handleChange}
-                      />
-                    </CCol>
-                    <CCol md={4}>
-                      <CFormLabel htmlFor="account_beneficiary_name">Beneficiary Name</CFormLabel>
-                      <CFormInput
-                        type="text"
-                        id="account_beneficiary_name"
-                        name="account_beneficiary_name"
-                        value={formData.account_beneficiary_name}
-                        onChange={handleChange}
-                      />
-                    </CCol>
-                  </CRow>
-                  <div className="mb-3">
-                    <CFormLabel>QR Code (Optional)</CFormLabel>
+                    />
+                  </CCol>
+                  <CCol md={4}>
+                    <CFormLabel htmlFor="account_bank_name">Bank Name</CFormLabel>
+                    <CFormInput
+                      type="text"
+                      id="account_bank_name"
+                      name="account_bank_name"
+                      placeholder="e.g., Maybank"
+                      value={formData.account_bank_name}
+                      onChange={handleChange}
+                    />
+                  </CCol>
+                  <CCol md={4}>
+                    <CFormLabel htmlFor="account_bank_number">Account Number</CFormLabel>
+                    <CFormInput
+                      type="text"
+                      id="account_bank_number"
+                      name="account_bank_number"
+                      placeholder="1234567890"
+                      value={formData.account_bank_number}
+                      onChange={handleChange}
+                    />
+                  </CCol>
+                  <CCol md={4}>
+                    <CFormLabel htmlFor="account_beneficiary_name">Beneficiary Name</CFormLabel>
+                    <CFormInput
+                      type="text"
+                      id="account_beneficiary_name"
+                      name="account_beneficiary_name"
+                      placeholder="Account holder name"
+                      value={formData.account_beneficiary_name}
+                      onChange={handleChange}
+                    />
+                  </CCol>
+                  <CCol xs={12}>
+                    <CFormLabel>Payment QR Code (Optional)</CFormLabel>
                     <QRCodeUpload image={paymentQRCode} setImage={setPaymentQRCode} />
-                  </div>
-                </>
-              )}
-            </CCardBody>
-          </CCard>
-
-          <CCard className="mb-4">
-            <CCardHeader>
-              <strong>Contact Information</strong>
-            </CCardHeader>
-            <CCardBody>
-              <ContactForm contacts={contacts} setContacts={setContacts} />
-            </CCardBody>
-          </CCard>
-
-          <CCard className="mb-4">
-            <CCardHeader>
-              <strong>Closing Message</strong>
-            </CCardHeader>
-            <CCardBody>
-              <div className="mb-3">
-                <CFormLabel htmlFor="closing_message">Closing Message</CFormLabel>
-                <CFormTextarea id="closing_message" name="closing_message" rows="3" value={formData.closing_message} onChange={handleChange}></CFormTextarea>
+                  </CCol>
+                </CRow>
               </div>
-            </CCardBody>
-          </CCard>
+            )}
+          </SectionCard>
 
-          <CButton type="submit" color="primary" disabled={loading}>
-            {loading ? <CSpinner size="sm" /> : 'Create Event'}
-          </CButton>
-        </CCol>
-      </CRow>
-    </CForm>
+          {/* Contact Information */}
+          <SectionCard icon={cilPhone} title="Contact Information" subtitle="Add contact persons for your guests">
+            <ContactForm contacts={contacts} setContacts={setContacts} errors={errors} />
+          </SectionCard>
+
+          {/* Closing Message */}
+          <SectionCard icon={cilEnvelopeClosed} title="Closing Message" subtitle="End your invitation with a heartfelt message">
+            <CFormTextarea 
+              id="closing_message" 
+              name="closing_message" 
+              rows="3" 
+              placeholder="Thank you for being part of our special day..."
+              value={formData.closing_message} 
+              onChange={handleChange}
+            />
+          </SectionCard>
+
+          {/* Submit Button */}
+          <div className="d-flex justify-content-end gap-3 mb-4">
+            <CButton type="button" color="secondary" variant="outline" href="/#/events">
+              Cancel
+            </CButton>
+            <CButton type="submit" color="primary" disabled={loading} className="px-4">
+              {loading ? (
+                <>
+                  <CSpinner size="sm" className="me-2" />
+                  Creating...
+                </>
+              ) : (
+                'Create Wedding Card'
+              )}
+            </CButton>
+          </div>
+        </CForm>
+      </CContainer>
     </>
   )
 }

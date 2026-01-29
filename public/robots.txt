@@ -1,0 +1,12 @@
+# robots.txt for Sayakahwin Merchant Dashboard
+User-agent: *
+Allow: /
+
+# Disallow admin/private routes
+Disallow: /login
+Disallow: /register
+Disallow: /404
+Disallow: /500
+
+# Sitemap location
+Sitemap: https://merchant.sayakahwin.com/sitemap.xml

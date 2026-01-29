@@ -1,69 +1,75 @@
 import React from 'react'
 import {
   CButton,
-  CCard,
-  CCardBody,
-  CCol,
-  CContainer,
   CForm,
   CFormInput,
-  CInputGroup,
-  CInputGroupText,
-  CRow,
 } from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-import { cilLockLocked, cilUser } from '@coreui/icons'
 
 const Register = () => {
   return (
-    <div className="bg-body-tertiary min-vh-100 d-flex flex-row align-items-center">
-      <CContainer>
-        <CRow className="justify-content-center">
-          <CCol md={9} lg={7} xl={6}>
-            <CCard className="mx-4">
-              <CCardBody className="p-4">
-                <CForm>
-                  <h1>Register</h1>
-                  <p className="text-body-secondary">Create your account</p>
-                  <CInputGroup className="mb-3">
-                    <CInputGroupText>
-                      <CIcon icon={cilUser} />
-                    </CInputGroupText>
-                    <CFormInput placeholder="Username" autoComplete="username" />
-                  </CInputGroup>
-                  <CInputGroup className="mb-3">
-                    <CInputGroupText>@</CInputGroupText>
-                    <CFormInput placeholder="Email" autoComplete="email" />
-                  </CInputGroup>
-                  <CInputGroup className="mb-3">
-                    <CInputGroupText>
-                      <CIcon icon={cilLockLocked} />
-                    </CInputGroupText>
-                    <CFormInput
-                      type="password"
-                      placeholder="Password"
-                      autoComplete="new-password"
-                    />
-                  </CInputGroup>
-                  <CInputGroup className="mb-4">
-                    <CInputGroupText>
-                      <CIcon icon={cilLockLocked} />
-                    </CInputGroupText>
-                    <CFormInput
-                      type="password"
-                      placeholder="Repeat password"
-                      autoComplete="new-password"
-                    />
-                  </CInputGroup>
-                  <div className="d-grid">
-                    <CButton color="success">Create Account</CButton>
-                  </div>
-                </CForm>
-              </CCardBody>
-            </CCard>
-          </CCol>
-        </CRow>
-      </CContainer>
+    <div className="login-page">
+      <div className="login-card" style={{ maxWidth: '450px' }}>
+        {/* Header with Logo */}
+        <div className="login-header">
+          <h1 className="brand-title">sayakahwin ✦</h1>
+          <p className="brand-subtitle">Merchant Dashboard</p>
+        </div>
+        
+        {/* Register Form */}
+        <div className="login-body">
+          <h2 className="login-title">Create Account</h2>
+          <p className="login-subtitle">Register as a new merchant</p>
+          
+          <CForm>
+            <div className="mb-3">
+              <label className="form-label">Full Name</label>
+              <CFormInput
+                type="text"
+                placeholder="Enter your full name"
+                autoComplete="name"
+              />
+            </div>
+            
+            <div className="mb-3">
+              <label className="form-label">Email Address</label>
+              <CFormInput
+                type="email"
+                placeholder="Enter your email"
+                autoComplete="email"
+              />
+            </div>
+            
+            <div className="mb-3">
+              <label className="form-label">Password</label>
+              <CFormInput
+                type="password"
+                placeholder="Create a password"
+                autoComplete="new-password"
+              />
+            </div>
+            
+            <div className="mb-4">
+              <label className="form-label">Confirm Password</label>
+              <CFormInput
+                type="password"
+                placeholder="Confirm your password"
+                autoComplete="new-password"
+              />
+            </div>
+            
+            <CButton type="submit" color="primary" className="w-100">
+              Create Account
+            </CButton>
+            
+            <div className="text-center mt-4">
+              <p className="text-muted mb-0" style={{ fontSize: '0.875rem' }}>
+                Already have an account?{' '}
+                <a href="/#/login">Sign in</a>
+              </p>
+            </div>
+          </CForm>
+        </div>
+      </div>
     </div>
   )
 }

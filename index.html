@@ -4,22 +4,131 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="sayakahwin">
-    <meta name="author" content="sayakahwin">
-    <meta name="keyword" content="sayakahwin">
-    <title>sayakahwin</title>
+    
+    <!-- Primary Meta Tags -->
+    <title>Sayakahwin Merchant Dashboard - Manage Your Wedding Cards & Events</title>
+    <meta name="title" content="Sayakahwin Merchant Dashboard - Manage Your Wedding Cards & Events">
+    <meta name="description" content="Manage your wedding invitation cards, events, templates, and licenses with Sayakahwin Merchant Dashboard. Create beautiful digital wedding invitations and manage your events effortlessly.">
+    <meta name="keywords" content="sayakahwin, merchant dashboard, wedding cards, wedding invitations, event management, digital invitations, wedding templates, kad kahwin digital, Malaysia wedding">
+    <meta name="author" content="Sayakahwin">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    <meta name="revisit-after" content="7 days">
+    <meta name="theme-color" content="#2D1B4E">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://merchant.sayakahwin.com/">
+    <meta property="og:title" content="Sayakahwin Merchant Dashboard - Manage Your Wedding Cards & Events">
+    <meta property="og:description" content="Manage your wedding invitation cards, events, templates, and licenses with Sayakahwin Merchant Dashboard.">
+    <meta property="og:image" content="/favicon.ico">
+    <meta property="og:site_name" content="Sayakahwin">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://merchant.sayakahwin.com/">
+    <meta property="twitter:title" content="Sayakahwin Merchant Dashboard - Manage Your Wedding Cards & Events">
+    <meta property="twitter:description" content="Manage your wedding invitation cards, events, templates, and licenses with Sayakahwin Merchant Dashboard.">
+    <meta property="twitter:image" content="/favicon.ico">
+    
+    <!-- Favicon and Icons -->
     <link rel="manifest" href="/manifest.json">
     <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/favicon.ico">
+    
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://merchant.sayakahwin.com/">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Sayakahwin Merchant Dashboard",
+      "description": "Manage your wedding invitation cards, events, templates, and licenses",
+      "url": "https://merchant.sayakahwin.com",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "MYR"
+      },
+      "provider": {
+        "@type": "Organization",
+        "name": "Sayakahwin",
+        "url": "https://sayakahwin.com"
+      }
+    }
+    </script>
+    
+    <!-- Custom Preload Styles -->
+    <style>
+      /* Initial loading state styles */
+      #root {
+        min-height: 100vh;
+      }
+      
+      .initial-loader {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #2D1B4E 0%, #3D2B5E 100%);
+        font-family: 'Playfair Display', Georgia, serif;
+      }
+      
+      .initial-loader .brand {
+        font-size: 2rem;
+        font-weight: 700;
+        background: linear-gradient(90deg, #E8A0B0 0%, #D4789C 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1.5rem;
+      }
+      
+      .initial-loader .sparkle {
+        color: #E8A0B0;
+        font-size: 1.5rem;
+        margin-left: 0.5rem;
+      }
+      
+      .initial-loader .spinner {
+        width: 36px;
+        height: 36px;
+        border: 3px solid rgba(255, 255, 255, 0.2);
+        border-top-color: #E8A0B0;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
   </head>
   <body>
     <noscript>
-      You need to enable JavaScript to run this app
+      <div style="padding: 2rem; text-align: center; font-family: sans-serif;">
+        <h1>JavaScript Required</h1>
+        <p>Please enable JavaScript in your browser to use Sayakahwin Merchant Dashboard.</p>
+      </div>
     </noscript>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Initial loading state -->
+      <div class="initial-loader">
+        <div class="brand">sayakahwin <span class="sparkle">✦</span></div>
+        <div class="spinner"></div>
+      </div>
+    </div>
     <script type="module" src="/src/index.js"></script>
-    <!-- built files will be auto injected -->
   </body>
 </html>

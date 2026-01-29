@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useRef } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import {
@@ -15,110 +15,93 @@ import {
   useColorModes,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import {
-  cilContrast,
-  cilLockLocked,
-  cilMenu,
-  cilMoon,
-  cilSun,
-  cilUser,
-} from '@coreui/icons'
+import { cilMenu, cilMoon, cilSun, cilAccountLogout, cilUser } from '@coreui/icons'
 
 import { AppBreadcrumb } from './index'
-import authService from 'src/services/auth'
+import authService from '../services/auth'
 
 const AppHeader = () => {
   const headerRef = useRef()
-  const { colorMode, setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
   const navigate = useNavigate()
-  const user = authService.getCurrentUser()
+  const { colorMode, setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
 
   const dispatch = useDispatch()
   const sidebarShow = useSelector((state) => state.sidebarShow)
+  
+  const user = authService.getCurrentUser()
 
   const handleLogout = () => {
     authService.logout()
     navigate('/login')
   }
 
-  useEffect(() => {
-    document.addEventListener('scroll', () => {
-      headerRef.current &&
-        headerRef.current.classList.toggle('shadow-sm', document.documentElement.scrollTop > 0)
-    })
-  }, [])
-
   return (
     <CHeader position="sticky" className="mb-4 p-0" ref={headerRef}>
-      <CContainer className="border-bottom px-4" fluid>
+      <CContainer fluid className="border-bottom px-4">
         <CHeaderToggler
           onClick={() => dispatch({ type: 'set', sidebarShow: !sidebarShow })}
-          style={{ marginInlineStart: '-14px' }}
         >
           <CIcon icon={cilMenu} size="lg" />
         </CHeaderToggler>
+        
         <CHeaderNav className="d-none d-md-flex">
+          <CNavItem>
+            <CNavLink to="/dashboard" as={NavLink}>
+              Dashboard
+            </CNavLink>
+          </CNavItem>
+          <CNavItem>
+            <CNavLink to="/events" as={NavLink}>
+              Events
+            </CNavLink>
+          </CNavItem>
+          <CNavItem>
+            <CNavLink to="/templates" as={NavLink}>
+              Templates
+            </CNavLink>
+          </CNavItem>
         </CHeaderNav>
-        <CHeaderNav className="ms-auto"></CHeaderNav>
+        
+        <CHeaderNav className="ms-auto">
+          {/* Theme Switcher */}
+          <CNavItem>
+            <CNavLink
+              href="#"
+              onClick={(e) => {
+                e.preventDefault()
+                setColorMode(colorMode === 'light' ? 'dark' : 'light')
+              }}
+              title={colorMode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+            >
+              <CIcon icon={colorMode === 'light' ? cilMoon : cilSun} size="lg" />
+            </CNavLink>
+          </CNavItem>
+        </CHeaderNav>
+        
         <CHeaderNav>
-          <li className="nav-item py-1">
-            <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
-          </li>
           <CDropdown variant="nav-item" placement="bottom-end">
-            <CDropdownToggle caret={false}>
-              {colorMode === 'dark' ? (
-                <CIcon icon={cilMoon} size="lg" />
-              ) : colorMode === 'auto' ? (
-                <CIcon icon={cilContrast} size="lg" />
-              ) : (
-                <CIcon icon={cilSun} size="lg" />
-              )}
-            </CDropdownToggle>
-            <CDropdownMenu>
-              <CDropdownItem
-                active={colorMode === 'light'}
-                className="d-flex align-items-center"
-                as="button"
-                type="button"
-                onClick={() => setColorMode('light')}
+            <CDropdownToggle className="py-0 pe-0" caret={false}>
+              <div 
+                className="d-flex align-items-center justify-content-center rounded-circle bg-cream"
+                style={{ width: '36px', height: '36px' }}
               >
-                <CIcon className="me-2" icon={cilSun} size="lg" /> Light
-              </CDropdownItem>
-              <CDropdownItem
-                active={colorMode === 'dark'}
-                className="d-flex align-items-center"
-                as="button"
-                type="button"
-                onClick={() => setColorMode('dark')}
-              >
-                <CIcon className="me-2" icon={cilMoon} size="lg" /> Dark
-              </CDropdownItem>
-            </CDropdownMenu>
-          </CDropdown>
-          <li className="nav-item py-1">
-            <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
-          </li>
-          <CDropdown variant="nav-item" placement="bottom-end">
-            <CDropdownToggle caret={false}>
-              <div className="d-flex align-items-center">
-                {user && user.picture ? (
-                  <img src={user.picture} alt="user" className="rounded-full h-8 w-8" />
-                ) : (
-                  <CIcon icon={cilUser} size="lg" />
-                )}
-                {user && <span className="ms-2">{user.name}</span>}
+                <CIcon icon={cilUser} size="lg" className="text-navy" />
               </div>
             </CDropdownToggle>
             <CDropdownMenu>
-              <CDropdownItem onClick={handleLogout}>
-                <CIcon className="me-2" icon={cilLockLocked} size="lg" />
+              <CDropdownItem disabled className="text-muted">
+                <small>{user?.name || user?.email || 'User'}</small>
+              </CDropdownItem>
+              <CDropdownItem href="#" onClick={handleLogout}>
+                <CIcon icon={cilAccountLogout} className="me-2" />
                 Logout
               </CDropdownItem>
             </CDropdownMenu>
           </CDropdown>
         </CHeaderNav>
       </CContainer>
-      <CContainer className="px-4" fluid>
+      
+      <CContainer fluid className="px-4">
         <AppBreadcrumb />
       </CContainer>
     </CHeader>

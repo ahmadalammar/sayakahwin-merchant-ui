@@ -3,6 +3,7 @@ import AppContent from './AppContent'
 import AppFooter from './AppFooter'
 import AppHeader from './AppHeader'
 import AppSidebar from './AppSidebar'
+import PageTitle from './PageTitle'
 
 export {
   AppBreadcrumb,
@@ -10,4 +11,5 @@ export {
   AppFooter,
   AppHeader,
   AppSidebar,
+  PageTitle,
 }
