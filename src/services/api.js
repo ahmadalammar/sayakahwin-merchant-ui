@@ -27,7 +27,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       authService.logout()
-      window.location = '/login'
+      window.location.hash = '#/login'
     }
     return Promise.reject(error)
   },

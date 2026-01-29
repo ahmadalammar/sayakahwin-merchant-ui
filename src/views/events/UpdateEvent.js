@@ -170,9 +170,9 @@ const UpdateEvent = () => {
     const newErrors = {}
     if (!useCustomTemplate && !selectedTemplate) newErrors.template = 'Please select a template'
     if (!formData.groom_name) newErrors.groom_name = 'Groom name is required'
-    if (!formData.groom_father_name) newErrors.groom_father_name = "Groom's father name is required"
+    if (!formData.groom_father_name) newErrors.groom_father_name = "Groom's parent name is required"
     if (!formData.bride_name) newErrors.bride_name = 'Bride name is required'
-    if (!formData.bride_father_name) newErrors.bride_father_name = "Bride's father name is required"
+    if (!formData.bride_father_name) newErrors.bride_father_name = "Bride's parent name is required"
     if (!formData.email) newErrors.email = 'Email is required'
     schedules.forEach((schedule, index) => {
       if (!schedule.title) newErrors[`schedule_title_${index}`] = 'Title is required'
@@ -366,12 +366,19 @@ const UpdateEvent = () => {
                 {errors.groom_name && <div className="text-danger mt-1" style={{ fontSize: '0.8125rem' }}>{errors.groom_name}</div>}
               </CCol>
               <CCol md={6}>
-                <CFormLabel htmlFor="groom_father_name">Groom's Father's Name *</CFormLabel>
+                <CFormLabel htmlFor="groom_father_name">
+                  <span className="d-flex align-items-center gap-1">
+                    Groom's Parent Name (Or Groom/Bride Father name) *
+                    <CTooltip content="This field can be Groom Parents name or Bride/Groom Father name if its one side wedding invite">
+                      <CIcon icon={cilInfo} className="text-muted" size="sm" />
+                    </CTooltip>
+                  </span>
+                </CFormLabel>
                 <CFormInput 
                   type="text" 
                   id="groom_father_name" 
                   name="groom_father_name" 
-                  placeholder="Enter groom's father's name"
+                  placeholder="Enter groom's parent name or father's name"
                   value={formData.groom_father_name} 
                   onChange={handleChange} 
                   invalid={!!errors.groom_father_name} 
@@ -392,12 +399,19 @@ const UpdateEvent = () => {
                 {errors.bride_name && <div className="text-danger mt-1" style={{ fontSize: '0.8125rem' }}>{errors.bride_name}</div>}
               </CCol>
               <CCol md={6}>
-                <CFormLabel htmlFor="bride_father_name">Bride's Father's Name *</CFormLabel>
+                <CFormLabel htmlFor="bride_father_name">
+                  <span className="d-flex align-items-center gap-1">
+                    Bride's Parent Name (Or Groom/Bride Mother name) *
+                    <CTooltip content="This field can be Bride Parents name or Bride/Groom Mother name if its one side wedding invite">
+                      <CIcon icon={cilInfo} className="text-muted" size="sm" />
+                    </CTooltip>
+                  </span>
+                </CFormLabel>
                 <CFormInput 
                   type="text" 
                   id="bride_father_name" 
                   name="bride_father_name" 
-                  placeholder="Enter bride's father's name"
+                  placeholder="Enter bride's parent name or father's name"
                   value={formData.bride_father_name} 
                   onChange={handleChange} 
                   invalid={!!errors.bride_father_name} 

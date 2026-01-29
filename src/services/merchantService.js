@@ -4,7 +4,7 @@ import authService from './auth'
 const getSubscription = async () => {
   const user = authService.getCurrentUser()
   if (!user || !user.merchantId) {
-    throw new Error('User not authenticated or merchantId not found')
+    return null
   }
   const { merchantId } = user
   const response = await api.get(`/merchant/${merchantId}/subscription`)
@@ -14,7 +14,7 @@ const getSubscription = async () => {
 const getLicense = async () => {
   const user = authService.getCurrentUser()
   if (!user || !user.merchantId) {
-    throw new Error('User not authenticated or merchantId not found')
+    return null
   }
   const { merchantId } = user
   const response = await api.get(`/merchant/${merchantId}/subscription`)
@@ -24,7 +24,7 @@ const getLicense = async () => {
 const getTransactionHistory = async () => {
   const user = authService.getCurrentUser()
   if (!user || !user.merchantId) {
-    throw new Error('User not authenticated or merchantId not found')
+    return { data: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 0 } }
   }
   const { merchantId } = user
   try {
@@ -33,14 +33,14 @@ const getTransactionHistory = async () => {
   } catch (error) {
     // If transactions endpoint doesn't exist, return empty array
     console.warn('Transactions endpoint not available:', error.message)
-    return []
+    return { data: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 0 } }
   }
 }
 
 const getDashboardData = async () => {
   const user = authService.getCurrentUser()
   if (!user || !user.merchantId) {
-    throw new Error('User not authenticated or merchantId not found')
+    return null
   }
   const { merchantId } = user
   const response = await api.get(`/merchant/${merchantId}/dashboard`)

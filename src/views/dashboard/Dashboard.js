@@ -32,9 +32,17 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
+      // Check if user is authenticated before making API call
+      if (!user || !user.merchantId) {
+        setLoading(false)
+        return
+      }
+      
       try {
         const data = await merchantService.getDashboardData()
-        setDashboardData(data)
+        if (data) {
+          setDashboardData(data)
+        }
       } catch (err) {
         setError(err.message)
       } finally {
@@ -43,7 +51,7 @@ const Dashboard = () => {
     }
 
     fetchDashboardData()
-  }, [])
+  }, [user])
 
   if (loading) {
     return (

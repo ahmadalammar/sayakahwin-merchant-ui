@@ -30,9 +30,10 @@ const AppHeader = () => {
   
   const user = authService.getCurrentUser()
 
-  const handleLogout = () => {
+  const handleLogout = (e) => {
+    e.preventDefault()
     authService.logout()
-    navigate('/login')
+    navigate('/login', { replace: true })
   }
 
   return (
@@ -92,7 +93,7 @@ const AppHeader = () => {
               <CDropdownItem disabled className="text-muted">
                 <small>{user?.name || user?.email || 'User'}</small>
               </CDropdownItem>
-              <CDropdownItem href="#" onClick={handleLogout}>
+              <CDropdownItem onClick={handleLogout} style={{ cursor: 'pointer' }}>
                 <CIcon icon={cilAccountLogout} className="me-2" />
                 Logout
               </CDropdownItem>

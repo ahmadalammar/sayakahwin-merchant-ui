@@ -23,6 +23,7 @@ import {
 import CIcon from '@coreui/icons-react'
 import { cilCreditCard, cilCalendar, cilHistory } from '@coreui/icons'
 import merchantService from '../../services/merchantService'
+import authService from '../../services/auth'
 import PageTitle from '../../components/PageTitle'
 
 const License = () => {
@@ -38,13 +39,24 @@ const License = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      // Check if user is authenticated before making API call
+      const user = authService.getCurrentUser()
+      if (!user || !user.merchantId) {
+        setLoading(false)
+        return
+      }
+      
       try {
         const [license, trans] = await Promise.all([
           merchantService.getLicense(),
           merchantService.getTransactionHistory(),
         ])
-        setLicenseData(license)
-        setTransactions(trans)
+        if (license) {
+          setLicenseData(license)
+        }
+        if (trans) {
+          setTransactions(trans.data || trans)
+        }
       } catch (err) {
         setError(err.message)
       } finally {
