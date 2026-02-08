@@ -154,14 +154,14 @@ const GiftList = ({ gifts, setGifts }) => {
           </button>
           
           <CRow className="g-3 mt-2">
-            <CCol xs={12} md={gift.gift_link ? 6 : 12}>
+            <CCol xs={6} md={6}>
               <CFormLabel className="text-muted" style={{ fontSize: '0.8125rem', fontWeight: '500' }}>
                 Gift Name <span className="text-danger">*</span>
               </CFormLabel>
               <CFormInput
                 type="text"
                 name="gift_name"
-                placeholder="e.g., Blender, Toaster, Coffee Maker"
+                placeholder="e.g., Blender, Toaster"
                 value={gift.gift_name}
                 onChange={(e) => handleGiftChange(index, e)}
                 style={{
@@ -179,7 +179,7 @@ const GiftList = ({ gifts, setGifts }) => {
                 }}
               />
             </CCol>
-            <CCol xs={12} md={6}>
+            <CCol xs={6} md={6}>
               <CFormLabel className="text-muted" style={{ fontSize: '0.8125rem', fontWeight: '500' }}>
                 <span className="d-flex align-items-center gap-1">
                   <CIcon icon={cilExternalLink} size="sm" />
@@ -189,7 +189,7 @@ const GiftList = ({ gifts, setGifts }) => {
               <CFormInput
                 type="url"
                 name="gift_link"
-                placeholder="https://example.com/product"
+                placeholder="https://example.com"
                 value={gift.gift_link}
                 onChange={(e) => handleGiftChange(index, e)}
                 style={{

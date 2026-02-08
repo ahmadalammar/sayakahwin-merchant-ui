@@ -23,7 +23,7 @@ import {
   CAlert,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilInfo, cilHeart, cilCalendar, cilImage, cilEnvelopeClosed, cilCreditCard, cilPhone, cilCheckCircle, cilWarning } from '@coreui/icons'
+import { cilInfo, cilHeart, cilCalendar, cilImage, cilEnvelopeClosed, cilCreditCard, cilPhone, cilCheckCircle, cilWarning, cilGlobeAlt } from '@coreui/icons'
 import api from '../../services/api'
 import authService from 'src/services/auth'
 import EventSchedules from './EventSchedules'
@@ -86,6 +86,7 @@ const CreateEvent = () => {
     account_bank_number: '',
     account_beneficiary_name: '',
     closing_message: '',
+    lang: 'en',
   })
 
   useEffect(() => {
@@ -268,6 +269,69 @@ const CreateEvent = () => {
               {errors.template && <CAlert color="danger" className="mb-4">{errors.template}</CAlert>}
             </>
           )}
+
+          {/* Language Selection */}
+          <SectionCard icon={cilGlobeAlt} title="Language" subtitle="Select the language for your wedding invitation">
+            <div className="language-selector">
+              <div className="d-flex gap-3 flex-wrap">
+                {[
+                  { code: 'en', name: 'English', flag: '🇬🇧' },
+                  { code: 'ms', name: 'Bahasa Malaysia', flag: '🇲🇾' },
+                  { code: 'id', name: 'Bahasa Indonesia', flag: '🇮🇩' },
+                ].map((lang) => (
+                  <button
+                    key={lang.code}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, lang: lang.code })}
+                    className={`language-option ${formData.lang === lang.code ? 'active' : ''}`}
+                    style={{
+                      flex: '1',
+                      minWidth: '150px',
+                      padding: '16px 24px',
+                      borderRadius: '12px',
+                      border: formData.lang === lang.code 
+                        ? '2px solid var(--sk-purple, #2D1B4E)' 
+                        : '2px solid #E5E0E8',
+                      background: formData.lang === lang.code 
+                        ? 'linear-gradient(135deg, rgba(45, 27, 78, 0.1) 0%, rgba(45, 27, 78, 0.05) 100%)' 
+                        : '#fff',
+                      color: formData.lang === lang.code ? 'var(--sk-purple, #2D1B4E)' : '#6c757d',
+                      fontWeight: formData.lang === lang.code ? '600' : '500',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '8px',
+                      boxShadow: formData.lang === lang.code 
+                        ? '0 4px 12px rgba(45, 27, 78, 0.15)' 
+                        : 'none',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (formData.lang !== lang.code) {
+                        e.currentTarget.style.borderColor = 'var(--sk-purple, #2D1B4E)'
+                        e.currentTarget.style.background = 'rgba(45, 27, 78, 0.05)'
+                        e.currentTarget.style.transform = 'translateY(-2px)'
+                        e.currentTarget.style.boxShadow = '0 4px 8px rgba(45, 27, 78, 0.1)'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (formData.lang !== lang.code) {
+                        e.currentTarget.style.borderColor = '#E5E0E8'
+                        e.currentTarget.style.background = '#fff'
+                        e.currentTarget.style.transform = 'translateY(0)'
+                        e.currentTarget.style.boxShadow = 'none'
+                      }
+                    }}
+                  >
+                    <span style={{ fontSize: '2rem' }}>{lang.flag}</span>
+                    <span style={{ fontSize: '0.875rem' }}>{lang.name}</span>
+                    <span style={{ fontSize: '0.75rem', opacity: 0.7, textTransform: 'uppercase' }}>{lang.code}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </SectionCard>
 
           {/* Couple Information */}
           <SectionCard icon={cilHeart} title="Couple Information" subtitle="Enter the bride and groom details">
