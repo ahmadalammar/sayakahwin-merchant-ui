@@ -32,7 +32,7 @@ import EventGallery from './EventGallery'
 import TemplatePicker from './TemplatePicker'
 import ContactForm from './ContactForm'
 import QRCodeUpload from './QRCodeUpload'
-import TagInput from '../../components/TagInput'
+import GiftList from './GiftList'
 import PageTitle from '../../components/PageTitle'
 
 // SectionCard component moved outside to prevent re-creation on every render
@@ -172,7 +172,24 @@ const CreateEvent = () => {
         }
       })
 
-      eventData.append('gifts', JSON.stringify(gifts))
+      // Filter out gifts with empty gift_name and ensure proper format
+      const filteredGifts = gifts
+        .filter((gift) => {
+          if (typeof gift === 'string') {
+            return gift.trim() !== ''
+          }
+          return gift?.gift_name?.trim() !== ''
+        })
+        .map((gift) => {
+          if (typeof gift === 'string') {
+            return { gift_name: gift.trim(), gift_link: '' }
+          }
+          return {
+            gift_name: gift.gift_name?.trim() || '',
+            gift_link: gift.gift_link?.trim() || '',
+          }
+        })
+      eventData.append('gifts', JSON.stringify(filteredGifts))
 
       if (paymentQRCode && paymentQRCode.file) {
         eventData.append('payment_qr_code', paymentQRCode.file)
@@ -419,7 +436,7 @@ const CreateEvent = () => {
           )}
 
           {/* Wishlist */}
-          <SectionCard icon={cilHeart} title="Wishes & Gifts" subtitle="Allow guests to send wishes" badge="OPTIONAL">
+          <SectionCard icon={cilHeart} title="Wishes & Gifts" subtitle="Add gift suggestions for your guests" badge="OPTIONAL">
             <CFormCheck
               className="mb-3"
               id="showWishlist"
@@ -429,7 +446,7 @@ const CreateEvent = () => {
             />
             {showWishlist && (
               <div className="mt-3">
-                <TagInput tags={gifts} setTags={setGifts} label="Suggested Wishes" placeholder="Add a wish suggestion..." />
+                <GiftList gifts={gifts} setGifts={setGifts} />
               </div>
             )}
           </SectionCard>
