@@ -93,6 +93,7 @@ const UpdateEvent = () => {
     account_bank_number: '',
     account_beneficiary_name: '',
     closing_message: '',
+    wishes_description: '',
     lang: 'en',
   })
 
@@ -124,6 +125,7 @@ const UpdateEvent = () => {
           account_bank_number: data.gifts_account_number || '',
           account_beneficiary_name: data.gifts_account_name || '',
           closing_message: data.closing_description || '',
+          wishes_description: data.wishes_description || '',
           lang: data.lang || 'en',
         })
         setSchedules(
@@ -229,6 +231,7 @@ const UpdateEvent = () => {
       eventData.append('account_bank_number', formData.account_bank_number)
       eventData.append('account_beneficiary_name', formData.account_beneficiary_name)
       eventData.append('closing_message', formData.closing_message)
+      eventData.append('wishes_description', formData.wishes_description)
       eventData.append('lang', formData.lang || 'en')
       eventData.append('show_money_gift', showGiftInfo)
       eventData.append('show_wishlist', showWishlist)
@@ -862,6 +865,23 @@ const UpdateEvent = () => {
           {/* Contact Information */}
           <SectionCard icon={cilPhone} title="Contact Information" subtitle="Add contact persons for your guests">
             <ContactForm contacts={contacts} setContacts={setContacts} errors={errors} />
+          </SectionCard>
+
+          {/* RSVP Setting */}
+          <SectionCard icon={cilCheckCircle} title="RSVP Setting" subtitle="Add wishes description for RSVP responses" badge="OPTIONAL">
+            <CRow className="g-3">
+              <CCol xs={12}>
+                <CFormLabel htmlFor="wishes_description">Wishes Description</CFormLabel>
+                <CFormTextarea
+                  id="wishes_description"
+                  name="wishes_description"
+                  rows="3"
+                  placeholder="Share your wishes or special message for guests who RSVP..."
+                  value={formData.wishes_description}
+                  onChange={handleChange}
+                />
+              </CCol>
+            </CRow>
           </SectionCard>
 
           {/* Closing Message */}

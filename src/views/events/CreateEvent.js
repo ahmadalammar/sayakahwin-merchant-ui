@@ -89,6 +89,7 @@ const CreateEvent = () => {
     account_bank_number: '',
     account_beneficiary_name: '',
     closing_message: '',
+    wishes_description: '',
     lang: 'en',
   })
 
@@ -747,6 +748,23 @@ const CreateEvent = () => {
           {/* Contact Information */}
           <SectionCard icon={cilPhone} title="Contact Information" subtitle="Add contact persons for your guests">
             <ContactForm contacts={contacts} setContacts={setContacts} errors={errors} />
+          </SectionCard>
+
+          {/* RSVP Setting */}
+          <SectionCard icon={cilCheckCircle} title="RSVP Setting" subtitle="Add wishes description for RSVP responses" badge="OPTIONAL">
+            <CRow className="g-3">
+              <CCol xs={12}>
+                <CFormLabel htmlFor="wishes_description">Wishes Description</CFormLabel>
+                <CFormTextarea
+                  id="wishes_description"
+                  name="wishes_description"
+                  rows="3"
+                  placeholder="Share your wishes or special message for guests who RSVP..."
+                  value={formData.wishes_description}
+                  onChange={handleChange}
+                />
+              </CCol>
+            </CRow>
           </SectionCard>
 
           {/* Closing Message */}
