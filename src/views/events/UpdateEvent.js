@@ -23,7 +23,7 @@ import {
   CAlert,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilInfo, cilHeart, cilCalendar, cilImage, cilEnvelopeClosed, cilCreditCard, cilPhone, cilCheckCircle, cilWarning, cilGlobeAlt } from '@coreui/icons'
+import { cilInfo, cilHeart, cilCalendar, cilImage, cilEnvelopeClosed, cilCreditCard, cilPhone, cilCheckCircle, cilWarning, cilGlobeAlt, cilTag, cilUser } from '@coreui/icons'
 import { useParams } from 'react-router-dom'
 import config from '../../config'
 import api from '../../services/api'
@@ -77,10 +77,13 @@ const UpdateEvent = () => {
   const [selectedTemplate, setSelectedTemplate] = useState(null)
   const [formData, setFormData] = useState({
     groom_name: '',
+    groom_short_name: '',
     groom_father_name: '',
     bride_name: '',
+    bride_short_name: '',
     bride_father_name: '',
     email: '',
+    hashtag: '',
     opening_message: '',
     parent_opening: '',
     event_description: '',
@@ -105,10 +108,13 @@ const UpdateEvent = () => {
         setSubscription(subResponse.data)
         setFormData({
           groom_name: data.groom_name || '',
+          groom_short_name: data.groom_short_name || '',
           groom_father_name: data.groom_father_name || '',
           bride_name: data.bride_name || '',
+          bride_short_name: data.bride_short_name || '',
           bride_father_name: data.bride_father_name || '',
           email: data.email || '',
+          hashtag: data.hashtag || '',
           opening_message: data.opening_text || '',
           parent_opening: data.parent_opening || '',
           event_description: data.events_description || '',
@@ -122,9 +128,18 @@ const UpdateEvent = () => {
         })
         setSchedules(
           (data.events || []).map((event) => {
-            if (!event.date) return { ...event, date: '' }
-            const date = event.date.slice(0, 16)
-            return { ...event, date }
+            const schedule = { ...event }
+            if (!event.date) {
+              schedule.date = ''
+            } else {
+              schedule.date = event.date.slice(0, 16)
+            }
+            if (!event.end_time) {
+              schedule.end_time = ''
+            } else {
+              schedule.end_time = event.end_time.slice(0, 16)
+            }
+            return schedule
           }),
         )
         setItinerary(data.itineraries || [{ name: '', time: '' }])
@@ -198,10 +213,13 @@ const UpdateEvent = () => {
       const eventData = new FormData()
 
       eventData.append('groom_name', formData.groom_name)
+      eventData.append('groom_short_name', formData.groom_short_name)
       eventData.append('groom_father_name', formData.groom_father_name)
       eventData.append('bride_name', formData.bride_name)
+      eventData.append('bride_short_name', formData.bride_short_name)
       eventData.append('bride_father_name', formData.bride_father_name)
       eventData.append('email', formData.email)
+      eventData.append('hashtag', formData.hashtag)
       eventData.append('opening_message', formData.opening_message)
       eventData.append('parent_opening', formData.parent_opening)
       eventData.append('event_description', formData.event_description)
@@ -502,6 +520,167 @@ const UpdateEvent = () => {
                 />
                 {errors.bride_father_name && <div className="text-danger mt-1" style={{ fontSize: '0.8125rem' }}>{errors.bride_father_name}</div>}
               </CCol>
+            </CRow>
+            
+            {/* Divider with elegant styling */}
+            <div style={{ 
+              margin: '24px 0', 
+              display: 'flex', 
+              alignItems: 'center',
+              gap: '12px'
+            }}>
+              <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to right, transparent, #E5E0E8, transparent)' }}></div>
+              <span style={{ 
+                fontSize: '0.75rem', 
+                color: '#6c757d', 
+                fontWeight: '500',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>Additional Details</span>
+              <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to left, transparent, #E5E0E8, transparent)' }}></div>
+            </div>
+
+            <CRow className="g-3">
+              <CCol md={6}>
+                <CFormLabel htmlFor="groom_short_name" style={{ 
+                  fontSize: '0.875rem', 
+                  fontWeight: '500',
+                  color: '#495057',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  <CIcon icon={cilUser} size="sm" className="text-muted" />
+                  Groom's Short Name
+                </CFormLabel>
+                <CFormInput 
+                  type="text" 
+                  id="groom_short_name" 
+                  name="groom_short_name" 
+                  placeholder="e.g., Ahmad"
+                  value={formData.groom_short_name} 
+                  onChange={handleChange}
+                  style={{
+                    borderRadius: '10px',
+                    border: '1px solid #E5E0E8',
+                    padding: '12px 16px',
+                    fontSize: '0.9375rem',
+                    transition: 'all 0.2s ease',
+                    background: '#FAF8F7',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = 'var(--sk-purple, #2D1B4E)'
+                    e.target.style.boxShadow = '0 0 0 3px rgba(45, 27, 78, 0.1)'
+                    e.target.style.background = '#fff'
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#E5E0E8'
+                    e.target.style.boxShadow = 'none'
+                    e.target.style.background = '#FAF8F7'
+                  }}
+                />
+              </CCol>
+              <CCol md={6}>
+                <CFormLabel htmlFor="bride_short_name" style={{ 
+                  fontSize: '0.875rem', 
+                  fontWeight: '500',
+                  color: '#495057',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  <CIcon icon={cilUser} size="sm" className="text-muted" />
+                  Bride's Short Name
+                </CFormLabel>
+                <CFormInput 
+                  type="text" 
+                  id="bride_short_name" 
+                  name="bride_short_name" 
+                  placeholder="e.g., Syaheera"
+                  value={formData.bride_short_name} 
+                  onChange={handleChange}
+                  style={{
+                    borderRadius: '10px',
+                    border: '1px solid #E5E0E8',
+                    padding: '12px 16px',
+                    fontSize: '0.9375rem',
+                    transition: 'all 0.2s ease',
+                    background: '#FAF8F7',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = 'var(--sk-purple, #2D1B4E)'
+                    e.target.style.boxShadow = '0 0 0 3px rgba(45, 27, 78, 0.1)'
+                    e.target.style.background = '#fff'
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#E5E0E8'
+                    e.target.style.boxShadow = 'none'
+                    e.target.style.background = '#FAF8F7'
+                  }}
+                />
+              </CCol>
+              <CCol md={12}>
+                <CFormLabel htmlFor="hashtag" style={{ 
+                  fontSize: '0.875rem', 
+                  fontWeight: '500',
+                  color: '#495057',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  <CIcon icon={cilTag} size="sm" className="text-muted" />
+                  Wedding Hashtag
+                </CFormLabel>
+                <div style={{ position: 'relative' }}>
+                  <CFormInput 
+                    type="text" 
+                    id="hashtag" 
+                    name="hashtag" 
+                    placeholder="#AhmadSyaheera2026"
+                    value={formData.hashtag} 
+                    onChange={handleChange}
+                    style={{
+                      borderRadius: '10px',
+                      border: '1px solid #E5E0E8',
+                      padding: '12px 16px 12px 40px',
+                      fontSize: '0.9375rem',
+                      transition: 'all 0.2s ease',
+                      background: '#FAF8F7',
+                      fontFamily: 'inherit',
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = 'var(--sk-purple, #2D1B4E)'
+                      e.target.style.boxShadow = '0 0 0 3px rgba(45, 27, 78, 0.1)'
+                      e.target.style.background = '#fff'
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#E5E0E8'
+                      e.target.style.boxShadow = 'none'
+                      e.target.style.background = '#FAF8F7'
+                    }}
+                  />
+                  <span style={{
+                    position: 'absolute',
+                    left: '16px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    color: '#6c757d',
+                    fontSize: '1rem',
+                    fontWeight: '600',
+                  }}>#</span>
+                </div>
+                <div style={{ 
+                  fontSize: '0.75rem', 
+                  color: '#6c757d', 
+                  marginTop: '6px',
+                  fontStyle: 'italic'
+                }}>
+                  Create a unique hashtag for your special day
+                </div>
+              </CCol>
+            </CRow>
+
+            <CRow className="g-3 mt-3">
               <CCol md={6}>
                 <CFormLabel htmlFor="email">Email Address *</CFormLabel>
                 <CFormInput 

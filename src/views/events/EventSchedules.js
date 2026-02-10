@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { CButton, CCol, CRow, CFormInput, CFormLabel } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilTrash, cilPlus, cilLocationPin } from '@coreui/icons'
+import { cilTrash, cilPlus, cilLocationPin, cilClock } from '@coreui/icons'
 
 const AddressSearch = ({ schedule, index, handleChange, required }) => {
   const [suggestions, setSuggestions] = useState([])
@@ -68,6 +68,21 @@ const AddressSearch = ({ schedule, index, handleChange, required }) => {
         placeholder="Search for venue address..."
         autoComplete="off"
         required={required}
+        style={{
+          borderRadius: '8px',
+          border: '1px solid var(--sk-border, #E5E0E8)',
+          padding: '10px 14px',
+          fontSize: '0.9375rem',
+          transition: 'all 0.2s ease',
+        }}
+        onFocus={(e) => {
+          e.target.style.borderColor = 'var(--sk-purple, #2D1B4E)'
+          e.target.style.boxShadow = '0 0 0 3px rgba(45, 27, 78, 0.1)'
+        }}
+        onBlur={(e) => {
+          e.target.style.borderColor = 'var(--sk-border, #E5E0E8)'
+          e.target.style.boxShadow = 'none'
+        }}
       />
       {loading && (
         <div className="position-absolute" style={{ right: '10px', top: '50%', transform: 'translateY(-50%)' }}>
@@ -106,7 +121,7 @@ const AddressSearch = ({ schedule, index, handleChange, required }) => {
 
 const EventSchedules = ({ schedules, setSchedules }) => {
   const handleAddSchedule = () => {
-    setSchedules([...schedules, { title: '', date: '', address: '', address_url: '' }])
+    setSchedules([...schedules, { title: '', date: '', end_time: '', address: '', address_url: '' }])
   }
 
   const handleRemoveSchedule = (index) => {
@@ -127,25 +142,37 @@ const EventSchedules = ({ schedules, setSchedules }) => {
       {schedules.map((schedule, index) => (
         <div 
           key={index} 
-          className="mb-3 p-3 position-relative"
+          className="mb-4 p-4 position-relative"
           style={{
-            background: 'var(--sk-cream, #FAF8F7)',
-            borderRadius: '12px',
+            background: 'linear-gradient(135deg, #FAF8F7 0%, #FFFFFF 100%)',
+            borderRadius: '16px',
             border: '1px solid var(--sk-border, #E5E0E8)',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+            transition: 'all 0.3s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow = '0 4px 16px rgba(45, 27, 78, 0.08)'
+            e.currentTarget.style.transform = 'translateY(-2px)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.04)'
+            e.currentTarget.style.transform = 'translateY(0)'
           }}
         >
           {/* Event Number Badge */}
           <div 
             style={{
               position: 'absolute',
-              top: '-10px',
-              left: '16px',
-              background: 'var(--sk-purple, #2D1B4E)',
+              top: '-12px',
+              left: '20px',
+              background: 'linear-gradient(135deg, var(--sk-purple, #2D1B4E) 0%, #3D2B5E 100%)',
               color: '#fff',
               fontSize: '0.75rem',
               fontWeight: '600',
-              padding: '2px 10px',
-              borderRadius: '10px',
+              padding: '4px 12px',
+              borderRadius: '12px',
+              boxShadow: '0 2px 8px rgba(45, 27, 78, 0.2)',
+              letterSpacing: '0.5px',
             }}
           >
             Event {index + 1}
@@ -187,29 +214,101 @@ const EventSchedules = ({ schedules, setSchedules }) => {
           )}
           
           <CRow className="g-3 mt-1">
-            <CCol md={4}>
-              <CFormLabel className="text-muted" style={{ fontSize: '0.8125rem' }}>Event Title *</CFormLabel>
+            <CCol md={12}>
+              <CFormLabel className="text-muted" style={{ fontSize: '0.8125rem', fontWeight: '500' }}>
+                Event Title *
+              </CFormLabel>
               <CFormInput
                 type="text"
                 name="title"
                 value={schedule.title}
-                placeholder="e.g., Nikah Ceremony"
+                placeholder="e.g., Majlis Akad Nikah"
                 onChange={(e) => handleChange(e, index)}
                 required
+                style={{
+                  borderRadius: '8px',
+                  border: '1px solid var(--sk-border, #E5E0E8)',
+                  padding: '10px 14px',
+                  fontSize: '0.9375rem',
+                  transition: 'all 0.2s ease',
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = 'var(--sk-purple, #2D1B4E)'
+                  e.target.style.boxShadow = '0 0 0 3px rgba(45, 27, 78, 0.1)'
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = 'var(--sk-border, #E5E0E8)'
+                  e.target.style.boxShadow = 'none'
+                }}
               />
             </CCol>
-            <CCol md={4}>
-              <CFormLabel className="text-muted" style={{ fontSize: '0.8125rem' }}>Date & Time *</CFormLabel>
+          </CRow>
+          
+          <CRow className="g-3">
+            <CCol md={6}>
+              <CFormLabel className="text-muted" style={{ fontSize: '0.8125rem', fontWeight: '500' }}>
+                <CIcon icon={cilClock} size="sm" className="me-1" />
+                Start Date & Time *
+              </CFormLabel>
               <CFormInput
                 type="datetime-local"
                 name="date"
                 value={schedule.date}
                 onChange={(e) => handleChange(e, index)}
                 required
+                style={{
+                  borderRadius: '8px',
+                  border: '1px solid var(--sk-border, #E5E0E8)',
+                  padding: '10px 14px',
+                  fontSize: '0.9375rem',
+                  transition: 'all 0.2s ease',
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = 'var(--sk-purple, #2D1B4E)'
+                  e.target.style.boxShadow = '0 0 0 3px rgba(45, 27, 78, 0.1)'
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = 'var(--sk-border, #E5E0E8)'
+                  e.target.style.boxShadow = 'none'
+                }}
               />
             </CCol>
-            <CCol md={4}>
-              <CFormLabel className="text-muted" style={{ fontSize: '0.8125rem' }}>Venue Address *</CFormLabel>
+            <CCol md={6}>
+              <CFormLabel className="text-muted" style={{ fontSize: '0.8125rem', fontWeight: '500' }}>
+                <CIcon icon={cilClock} size="sm" className="me-1" />
+                End Date & Time *
+              </CFormLabel>
+              <CFormInput
+                type="datetime-local"
+                name="end_time"
+                value={schedule.end_time}
+                onChange={(e) => handleChange(e, index)}
+                required
+                style={{
+                  borderRadius: '8px',
+                  border: '1px solid var(--sk-border, #E5E0E8)',
+                  padding: '10px 14px',
+                  fontSize: '0.9375rem',
+                  transition: 'all 0.2s ease',
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = 'var(--sk-purple, #2D1B4E)'
+                  e.target.style.boxShadow = '0 0 0 3px rgba(45, 27, 78, 0.1)'
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = 'var(--sk-border, #E5E0E8)'
+                  e.target.style.boxShadow = 'none'
+                }}
+              />
+            </CCol>
+          </CRow>
+          
+          <CRow className="g-3">
+            <CCol md={12}>
+              <CFormLabel className="text-muted" style={{ fontSize: '0.8125rem', fontWeight: '500' }}>
+                <CIcon icon={cilLocationPin} size="sm" className="me-1" />
+                Venue Address *
+              </CFormLabel>
               <AddressSearch schedule={schedule} index={index} handleChange={handleChange} required />
             </CCol>
           </CRow>
@@ -220,7 +319,28 @@ const EventSchedules = ({ schedules, setSchedules }) => {
         color="primary" 
         variant="outline"
         onClick={handleAddSchedule}
-        className="d-flex align-items-center gap-2"
+        className="d-flex align-items-center gap-2 mt-3"
+        style={{
+          borderRadius: '12px',
+          padding: '12px 24px',
+          fontWeight: '500',
+          borderWidth: '2px',
+          borderColor: 'var(--sk-purple, #2D1B4E)',
+          color: 'var(--sk-purple, #2D1B4E)',
+          transition: 'all 0.3s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'var(--sk-purple, #2D1B4E)'
+          e.currentTarget.style.color = '#fff'
+          e.currentTarget.style.transform = 'translateY(-2px)'
+          e.currentTarget.style.boxShadow = '0 4px 12px rgba(45, 27, 78, 0.2)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'transparent'
+          e.currentTarget.style.color = 'var(--sk-purple, #2D1B4E)'
+          e.currentTarget.style.transform = 'translateY(0)'
+          e.currentTarget.style.boxShadow = 'none'
+        }}
       >
         <CIcon icon={cilPlus} size="sm" />
         Add Event Schedule
