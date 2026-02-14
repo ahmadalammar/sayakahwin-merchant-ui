@@ -13,15 +13,16 @@ const GiftList = ({ gifts, setGifts }) => {
     if (needsNormalization) {
       const normalized = gifts.map((gift) => {
         if (typeof gift === 'string') {
-          return { gift_name: gift, gift_link: '' }
+          return { gift_name: gift, gift_link: '', address: '' }
         }
         // Handle old object format without gift_name
         if (gift && gift.name) {
-          return { gift_name: gift.name, gift_link: gift.link || gift.gift_link || '' }
+          return { gift_name: gift.name, gift_link: gift.link || gift.gift_link || '', address: gift.address || '' }
         }
         return {
           gift_name: gift?.gift_name || '',
           gift_link: gift?.gift_link || '',
+          address: gift?.address || '',
         }
       })
       setGifts(normalized)
@@ -34,14 +35,14 @@ const GiftList = ({ gifts, setGifts }) => {
     const list = [...gifts]
     // Ensure the gift object has the correct structure
     if (!list[index] || typeof list[index] === 'string') {
-      list[index] = { gift_name: '', gift_link: '' }
+      list[index] = { gift_name: '', gift_link: '', address: '' }
     }
     list[index][name] = value
     setGifts(list)
   }
 
   const handleAddGift = () => {
-    setGifts([...gifts, { gift_name: '', gift_link: '' }])
+    setGifts([...gifts, { gift_name: '', gift_link: '', address: '' }])
   }
 
   const handleRemoveGift = (index) => {
@@ -53,14 +54,15 @@ const GiftList = ({ gifts, setGifts }) => {
   // Normalize for display - ensure all gifts are in the correct format
   const normalizedGifts = gifts.map((gift) => {
     if (typeof gift === 'string') {
-      return { gift_name: gift, gift_link: '' }
+      return { gift_name: gift, gift_link: '', address: '' }
     }
     if (gift.name) {
-      return { gift_name: gift.name, gift_link: gift.link || gift.gift_link || '' }
+      return { gift_name: gift.name, gift_link: gift.link || gift.gift_link || '', address: gift.address || '' }
     }
     return {
       gift_name: gift.gift_name || '',
       gift_link: gift.gift_link || '',
+      address: gift.address || '',
     }
   })
 
@@ -229,6 +231,31 @@ const GiftList = ({ gifts, setGifts }) => {
                   </a>
                 </div>
               )}
+            </CCol>
+            <CCol xs={12}>
+              <CFormLabel className="text-muted" style={{ fontSize: '0.8125rem', fontWeight: '500' }}>
+                Address <span className="text-muted" style={{ fontSize: '0.75rem' }}>(Optional)</span>
+              </CFormLabel>
+              <CFormInput
+                type="text"
+                name="address"
+                placeholder="e.g., 123 Main Street, City, State"
+                value={gift.address}
+                onChange={(e) => handleGiftChange(index, e)}
+                style={{
+                  borderRadius: '8px',
+                  border: '1px solid #dee2e6',
+                  transition: 'all 0.2s ease',
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--sk-purple, #2D1B4E)'
+                  e.currentTarget.style.boxShadow = '0 0 0 0.2rem rgba(45, 27, 78, 0.1)'
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = '#dee2e6'
+                  e.currentTarget.style.boxShadow = 'none'
+                }}
+              />
             </CCol>
           </CRow>
         </div>

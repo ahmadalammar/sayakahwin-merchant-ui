@@ -68,6 +68,8 @@ const UpdateEvent = () => {
   const [showWishlist, setShowWishlist] = useState(false)
   const [showGiftInfo, setShowGiftInfo] = useState(false)
   const [showSalamOpening, setShowSalamOpening] = useState(true)
+  const [hideNotSure, setHideNotSure] = useState(false)
+  const [allowCheckin, setAllowCheckin] = useState(false)
   const [useCustomTemplate, setUseCustomTemplate] = useState(false)
   const [customThemeFile, setCustomThemeFile] = useState(null)
   const [customThemePreview, setCustomThemePreview] = useState(null)
@@ -94,6 +96,8 @@ const UpdateEvent = () => {
     account_beneficiary_name: '',
     closing_message: '',
     wishes_description: '',
+    rsvp_closed_date: '',
+    rsvp_mode: '',
     lang: 'en',
   })
 
@@ -126,6 +130,8 @@ const UpdateEvent = () => {
           account_beneficiary_name: data.gifts_account_name || '',
           closing_message: data.closing_description || '',
           wishes_description: data.wishes_description || '',
+          rsvp_closed_date: data.rsvp_closed_date ? data.rsvp_closed_date.slice(0, 16) : '',
+          rsvp_mode: data.rsvp_mode || '',
           lang: data.lang || 'en',
         })
         setSchedules(
@@ -152,6 +158,8 @@ const UpdateEvent = () => {
         setShowWishlist(data.show_wishlist || false)
         setShowGiftInfo(data.show_money_gift || false)
         setShowSalamOpening(data.showSalamOpening !== false)
+        setHideNotSure(data.hide_not_sure || false)
+        setAllowCheckin(data.allow_checkin || false)
         setUseCustomTemplate(data.theme_style === 'custom')
         if (data.theme_style === 'custom' && data.custom_url) {
           setCustomThemePreview(data.custom_url)
@@ -232,9 +240,13 @@ const UpdateEvent = () => {
       eventData.append('account_beneficiary_name', formData.account_beneficiary_name)
       eventData.append('closing_message', formData.closing_message)
       eventData.append('wishes_description', formData.wishes_description)
+      eventData.append('rsvp_closed_date', formData.rsvp_closed_date)
+      eventData.append('rsvp_mode', formData.rsvp_mode)
       eventData.append('lang', formData.lang || 'en')
       eventData.append('show_money_gift', showGiftInfo)
       eventData.append('show_wishlist', showWishlist)
+      eventData.append('hide_not_sure', hideNotSure)
+      eventData.append('allow_checkin', allowCheckin)
       eventData.append('use_custom_template', useCustomTemplate)
 
       if (useCustomTemplate) {
@@ -274,11 +286,12 @@ const UpdateEvent = () => {
         })
         .map((gift) => {
           if (typeof gift === 'string') {
-            return { gift_name: gift.trim(), gift_link: '' }
+            return { gift_name: gift.trim(), gift_link: '', address: '' }
           }
           return {
             gift_name: gift.gift_name?.trim() || '',
             gift_link: gift.gift_link?.trim() || '',
+            address: gift.address?.trim() || '',
           }
         })
       eventData.append('gifts', JSON.stringify(filteredGifts))
@@ -868,7 +881,147 @@ const UpdateEvent = () => {
           </SectionCard>
 
           {/* RSVP Setting */}
-          <SectionCard icon={cilCheckCircle} title="RSVP Setting" subtitle="Add wishes description for RSVP responses" badge="OPTIONAL">
+          <SectionCard icon={cilCheckCircle} title="RSVP Setting" subtitle="Configure RSVP settings and wishes description" badge="OPTIONAL">
+            <CFormCheck
+              className="mb-4"
+              id="hideNotSure"
+              label={
+                <span className="d-flex align-items-center gap-1">
+                  Hide "Not Sure" Option
+                  <CTooltip content="When enabled, guests can only choose to attend or not attend. The 'Not Sure' option will be hidden.">
+                    <CIcon icon={cilInfo} className="text-muted" size="sm" />
+                  </CTooltip>
+                </span>
+              }
+              checked={hideNotSure}
+              onChange={() => setHideNotSure(!hideNotSure)}
+            />
+            
+            <CFormCheck
+              className="mb-4"
+              id="allowCheckin"
+              label={
+                <span className="d-flex align-items-center gap-2">
+                  <span>Enable Check-in & QR Code</span>
+                  <CBadge color="warning" style={{ fontSize: '0.7rem', padding: '2px 8px' }}>ADD-ON</CBadge>
+                  <CTooltip content="Enable QR code check-in functionality for event attendance tracking">
+                    <CIcon icon={cilInfo} className="text-muted" size="sm" />
+                  </CTooltip>
+                </span>
+              }
+              checked={allowCheckin}
+              onChange={() => setAllowCheckin(!allowCheckin)}
+            />
+            
+            {/* RSVP Mode Selection */}
+            <div className="mb-4">
+              <CFormLabel style={{ fontSize: '0.875rem', fontWeight: '500', color: '#495057', marginBottom: '12px' }}>
+                <span className="d-flex align-items-center gap-1">
+                  RSVP Mode
+                  <span className="text-muted" style={{ fontSize: '0.75rem', fontWeight: '400' }}>(Optional)</span>
+                  <CTooltip content="Relaxed: More flexible RSVP process. Strict: Requires complete information and confirmation.">
+                    <CIcon icon={cilInfo} className="text-muted" size="sm" />
+                  </CTooltip>
+                </span>
+              </CFormLabel>
+              <div className="d-flex gap-3 flex-wrap">
+                {[
+                  { 
+                    value: 'relaxed', 
+                    label: 'Relaxed', 
+                    description: 'Flexible & Easy',
+                    icon: '😊',
+                    color: '#28a745'
+                  },
+                  { 
+                    value: 'strict', 
+                    label: 'Strict', 
+                    description: 'Detailed & Formal',
+                    icon: '📋',
+                    color: '#dc3545'
+                  },
+                ].map((mode) => (
+                  <button
+                    key={mode.value}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, rsvp_mode: mode.value })}
+                    className={`rsvp-mode-option ${formData.rsvp_mode === mode.value ? 'active' : ''}`}
+                    style={{
+                      flex: '1',
+                      minWidth: '180px',
+                      padding: '20px 24px',
+                      borderRadius: '12px',
+                      border: formData.rsvp_mode === mode.value 
+                        ? `2px solid ${mode.color}` 
+                        : '2px solid #E5E0E8',
+                      background: formData.rsvp_mode === mode.value 
+                        ? `linear-gradient(135deg, ${mode.color}15 0%, ${mode.color}08 100%)` 
+                        : '#fff',
+                      color: formData.rsvp_mode === mode.value ? mode.color : '#6c757d',
+                      fontWeight: formData.rsvp_mode === mode.value ? '600' : '500',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '8px',
+                      boxShadow: formData.rsvp_mode === mode.value 
+                        ? `0 4px 12px ${mode.color}25` 
+                        : 'none',
+                      position: 'relative',
+                      overflow: 'hidden',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (formData.rsvp_mode !== mode.value) {
+                        e.currentTarget.style.borderColor = mode.color
+                        e.currentTarget.style.background = `${mode.color}08`
+                        e.currentTarget.style.transform = 'translateY(-2px)'
+                        e.currentTarget.style.boxShadow = `0 4px 8px ${mode.color}15`
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (formData.rsvp_mode !== mode.value) {
+                        e.currentTarget.style.borderColor = '#E5E0E8'
+                        e.currentTarget.style.background = '#fff'
+                        e.currentTarget.style.transform = 'translateY(0)'
+                        e.currentTarget.style.boxShadow = 'none'
+                      }
+                    }}
+                  >
+                    <span style={{ fontSize: '2.5rem', lineHeight: '1' }}>{mode.icon}</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                      <span style={{ fontSize: '1rem', fontWeight: 'inherit' }}>{mode.label}</span>
+                      <span style={{ 
+                        fontSize: '0.75rem', 
+                        opacity: 0.7, 
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px'
+                      }}>
+                        {mode.description}
+                      </span>
+                    </div>
+                    {formData.rsvp_mode === mode.value && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '8px',
+                        right: '8px',
+                        width: '20px',
+                        height: '20px',
+                        borderRadius: '50%',
+                        background: mode.color,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: `0 2px 4px ${mode.color}40`
+                      }}>
+                        <span style={{ color: '#fff', fontSize: '0.75rem' }}>✓</span>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
             <CRow className="g-3">
               <CCol xs={12}>
                 <CFormLabel htmlFor="wishes_description">Wishes Description</CFormLabel>
@@ -879,7 +1032,67 @@ const UpdateEvent = () => {
                   placeholder="Share your wishes or special message for guests who RSVP..."
                   value={formData.wishes_description}
                   onChange={handleChange}
+                  style={{
+                    borderRadius: '8px',
+                    border: '1px solid var(--sk-border, #E5E0E8)',
+                    padding: '12px 16px',
+                    fontSize: '0.9375rem',
+                    transition: 'all 0.2s ease',
+                    background: '#FAF8F7',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = 'var(--sk-purple, #2D1B4E)'
+                    e.target.style.boxShadow = '0 0 0 3px rgba(45, 27, 78, 0.1)'
+                    e.target.style.background = '#fff'
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'var(--sk-border, #E5E0E8)'
+                    e.target.style.boxShadow = 'none'
+                    e.target.style.background = '#FAF8F7'
+                  }}
                 />
+              </CCol>
+              <CCol xs={12} md={6}>
+                <CFormLabel htmlFor="rsvp_closed_date" style={{ fontSize: '0.875rem', fontWeight: '500', color: '#495057' }}>
+                  <span className="d-flex align-items-center gap-1">
+                    <CIcon icon={cilCalendar} size="sm" className="text-muted" />
+                    RSVP Closed Date
+                    <span className="text-muted" style={{ fontSize: '0.75rem', fontWeight: '400' }}>(Optional)</span>
+                  </span>
+                </CFormLabel>
+                <CFormInput
+                  type="datetime-local"
+                  id="rsvp_closed_date"
+                  name="rsvp_closed_date"
+                  value={formData.rsvp_closed_date}
+                  onChange={handleChange}
+                  style={{
+                    borderRadius: '8px',
+                    border: '1px solid var(--sk-border, #E5E0E8)',
+                    padding: '12px 16px',
+                    fontSize: '0.9375rem',
+                    transition: 'all 0.2s ease',
+                    background: '#FAF8F7',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = 'var(--sk-purple, #2D1B4E)'
+                    e.target.style.boxShadow = '0 0 0 3px rgba(45, 27, 78, 0.1)'
+                    e.target.style.background = '#fff'
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'var(--sk-border, #E5E0E8)'
+                    e.target.style.boxShadow = 'none'
+                    e.target.style.background = '#FAF8F7'
+                  }}
+                />
+                <div style={{ 
+                  fontSize: '0.75rem', 
+                  color: '#6c757d', 
+                  marginTop: '6px',
+                  fontStyle: 'italic'
+                }}>
+                  Set the deadline for RSVP responses
+                </div>
               </CCol>
             </CRow>
           </SectionCard>
