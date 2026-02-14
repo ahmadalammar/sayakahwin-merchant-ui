@@ -23,7 +23,7 @@ import {
   CAlert,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilInfo, cilHeart, cilCalendar, cilImage, cilEnvelopeClosed, cilCreditCard, cilPhone, cilCheckCircle, cilWarning, cilGlobeAlt, cilTag, cilUser } from '@coreui/icons'
+import { cilInfo, cilHeart, cilCalendar, cilImage, cilEnvelopeClosed, cilCreditCard, cilPhone, cilCheckCircle, cilWarning, cilGlobeAlt, cilTag, cilUser, cilMediaPlay } from '@coreui/icons'
 import { useParams } from 'react-router-dom'
 import config from '../../config'
 import api from '../../services/api'
@@ -33,6 +33,7 @@ import EventGallery from './EventGallery'
 import TemplatePicker from './TemplatePicker'
 import ContactForm from './ContactForm'
 import QRCodeUpload from './QRCodeUpload'
+import SongUpload from './SongUpload'
 import GiftList from './GiftList'
 import PageTitle from '../../components/PageTitle'
 
@@ -64,6 +65,7 @@ const UpdateEvent = () => {
   const [contacts, setContacts] = useState([{ name: '', phone_number: '' }])
   const [gifts, setGifts] = useState([])
   const [paymentQRCode, setPaymentQRCode] = useState(null)
+  const [song, setSong] = useState(null)
   const [errors, setErrors] = useState({})
   const [showWishlist, setShowWishlist] = useState(false)
   const [showGiftInfo, setShowGiftInfo] = useState(false)
@@ -166,6 +168,9 @@ const UpdateEvent = () => {
         }
         if (data.payment_qr_code_url) {
           setPaymentQRCode(data.payment_qr_code_url)
+        }
+        if (data.music_url) {
+          setSong(data.music_url)
         }
       } catch (error) {
         const message = error.response?.data?.message || error.message
@@ -300,6 +305,12 @@ const UpdateEvent = () => {
         eventData.append('payment_qr_code', paymentQRCode.file)
       } else if (typeof paymentQRCode === 'string') {
         eventData.append('existing_payment_qr_code_url', paymentQRCode)
+      }
+
+      if (song && song.file) {
+        eventData.append('song', song.file)
+      } else if (typeof song === 'string') {
+        eventData.append('existing_music_url', song)
       }
 
       try {
@@ -791,6 +802,13 @@ const UpdateEvent = () => {
           {!useCustomTemplate && (
             <SectionCard icon={cilImage} title="Our Moments" subtitle="Upload photos of the couple" badge="OPTIONAL">
               <EventGallery images={gallery} setImages={setGallery} />
+            </SectionCard>
+          )}
+
+          {/* Song Upload */}
+          {!useCustomTemplate && (
+            <SectionCard icon={cilMediaPlay} title="Event Song" subtitle="Upload a song for your event" badge="OPTIONAL">
+              <SongUpload song={song} setSong={setSong} />
             </SectionCard>
           )}
 

@@ -23,7 +23,7 @@ import {
   CAlert,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilInfo, cilHeart, cilCalendar, cilImage, cilEnvelopeClosed, cilCreditCard, cilPhone, cilCheckCircle, cilWarning, cilGlobeAlt, cilTag, cilUser } from '@coreui/icons'
+import { cilInfo, cilHeart, cilCalendar, cilImage, cilEnvelopeClosed, cilCreditCard, cilPhone, cilCheckCircle, cilWarning, cilGlobeAlt, cilTag, cilUser, cilMediaPlay } from '@coreui/icons'
 import api from '../../services/api'
 import authService from 'src/services/auth'
 import EventSchedules from './EventSchedules'
@@ -32,6 +32,7 @@ import EventGallery from './EventGallery'
 import TemplatePicker from './TemplatePicker'
 import ContactForm from './ContactForm'
 import QRCodeUpload from './QRCodeUpload'
+import SongUpload from './SongUpload'
 import GiftList from './GiftList'
 import PageTitle from '../../components/PageTitle'
 
@@ -62,6 +63,7 @@ const CreateEvent = () => {
   const [contacts, setContacts] = useState([{ name: '', phone_number: '' }])
   const [gifts, setGifts] = useState([])
   const [paymentQRCode, setPaymentQRCode] = useState(null)
+  const [song, setSong] = useState(null)
   const [errors, setErrors] = useState({})
   const [showWishlist, setShowWishlist] = useState(false)
   const [showGiftInfo, setShowGiftInfo] = useState(false)
@@ -205,6 +207,10 @@ const CreateEvent = () => {
 
       if (paymentQRCode && paymentQRCode.file) {
         eventData.append('payment_qr_code', paymentQRCode.file)
+      }
+
+      if (song && song.file) {
+        eventData.append('song', song.file)
       }
 
       try {
@@ -668,6 +674,13 @@ const CreateEvent = () => {
           {!useCustomTemplate && (
             <SectionCard icon={cilImage} title="Our Moments" subtitle="Upload photos of the couple" badge="OPTIONAL">
               <EventGallery images={gallery} setImages={setGallery} />
+            </SectionCard>
+          )}
+
+          {/* Song Upload */}
+          {!useCustomTemplate && (
+            <SectionCard icon={cilMediaPlay} title="Event Song" subtitle="Upload a song for your event" badge="OPTIONAL">
+              <SongUpload song={song} setSong={setSong} />
             </SectionCard>
           )}
 
