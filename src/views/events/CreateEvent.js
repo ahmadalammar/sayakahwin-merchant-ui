@@ -129,9 +129,7 @@ const CreateEvent = () => {
     const newErrors = {}
     if (!useCustomTemplate && !selectedTemplate) newErrors.template = 'Please select a template'
     if (!formData.groom_name) newErrors.groom_name = 'Groom name is required'
-    if (!formData.groom_father_name) newErrors.groom_father_name = "Groom's parent name is required"
     if (!formData.bride_name) newErrors.bride_name = 'Bride name is required'
-    if (!formData.bride_father_name) newErrors.bride_father_name = "Bride's parent name is required"
     if (!formData.email) newErrors.email = 'Email is required'
     schedules.forEach((schedule, index) => {
       if (!schedule.title) newErrors[`schedule_title_${index}`] = 'Title is required'
@@ -369,7 +367,7 @@ const CreateEvent = () => {
               <CCol md={6}>
                 <CFormLabel htmlFor="groom_father_name">
                   <span className="d-flex align-items-center gap-1">
-                    Groom's Parent Name (Or Groom/Bride Father name) *
+                    Groom's Parent Name (Or Groom/Bride Father name)
                     <CTooltip content="This field can be Groom Parents name or Bride/Groom Father name if its one side wedding invite">
                       <CIcon icon={cilInfo} className="text-muted" size="sm" />
                     </CTooltip>
@@ -402,7 +400,7 @@ const CreateEvent = () => {
               <CCol md={6}>
                 <CFormLabel htmlFor="bride_father_name">
                   <span className="d-flex align-items-center gap-1">
-                    Bride's Parent Name (Or Groom/Bride Mother name) *
+                    Bride's Parent Name (Or Groom/Bride Mother name)
                     <CTooltip content="This field can be Bride Parents name or Bride/Groom Mother name if its one side wedding invite">
                       <CIcon icon={cilInfo} className="text-muted" size="sm" />
                     </CTooltip>
