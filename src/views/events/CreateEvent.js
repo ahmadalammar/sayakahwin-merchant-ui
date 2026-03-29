@@ -23,7 +23,7 @@ import {
   CAlert,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilInfo, cilHeart, cilCalendar, cilImage, cilEnvelopeClosed, cilCreditCard, cilPhone, cilCheckCircle, cilWarning, cilGlobeAlt, cilTag, cilUser, cilMediaPlay } from '@coreui/icons'
+import { cilInfo, cilHeart, cilCalendar, cilImage, cilEnvelopeClosed, cilCreditCard, cilPhone, cilCheckCircle, cilWarning, cilGlobeAlt, cilTag, cilUser, cilMediaPlay, cilStar } from '@coreui/icons'
 import api from '../../services/api'
 import authService from 'src/services/auth'
 import EventSchedules from './EventSchedules'
@@ -96,6 +96,7 @@ const CreateEvent = () => {
     wishes_description: '',
     rsvp_closed_date: '',
     rsvp_mode: '',
+    animation_theme: '',
     lang: 'en',
   })
 
@@ -983,6 +984,85 @@ const CreateEvent = () => {
                 </div>
               </CCol>
             </CRow>
+          </SectionCard>
+
+          {/* Animation */}
+          <SectionCard icon={cilStar} title="Animation" subtitle="Choose a celebration animation for your invitation">
+            <div className="d-flex gap-3 flex-wrap">
+              {[
+                { value: '1', label: 'Sparkles', icon: '✨', color: '#f59e0b' },
+                { value: '2', label: 'Hearts',   icon: '❤️',  color: '#e11d48' },
+                { value: '3', label: 'Butterflies', icon: '🦋', color: '#8b5cf6' },
+                { value: '4', label: 'Stars',    icon: '⭐',  color: '#0ea5e9' },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, animation_theme: option.value })}
+                  style={{
+                    flex: '1',
+                    minWidth: '130px',
+                    padding: '20px 16px',
+                    borderRadius: '12px',
+                    border: formData.animation_theme === option.value
+                      ? `2px solid ${option.color}`
+                      : '2px solid #E5E0E8',
+                    background: formData.animation_theme === option.value
+                      ? `linear-gradient(135deg, ${option.color}18 0%, ${option.color}08 100%)`
+                      : '#fff',
+                    color: formData.animation_theme === option.value ? option.color : '#6c757d',
+                    fontWeight: formData.animation_theme === option.value ? '600' : '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: formData.animation_theme === option.value
+                      ? `0 4px 12px ${option.color}25`
+                      : 'none',
+                    position: 'relative',
+                    overflow: 'hidden',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (formData.animation_theme !== option.value) {
+                      e.currentTarget.style.borderColor = option.color
+                      e.currentTarget.style.background = `${option.color}08`
+                      e.currentTarget.style.transform = 'translateY(-2px)'
+                      e.currentTarget.style.boxShadow = `0 4px 8px ${option.color}15`
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (formData.animation_theme !== option.value) {
+                      e.currentTarget.style.borderColor = '#E5E0E8'
+                      e.currentTarget.style.background = '#fff'
+                      e.currentTarget.style.transform = 'translateY(0)'
+                      e.currentTarget.style.boxShadow = 'none'
+                    }
+                  }}
+                >
+                  <span style={{ fontSize: '2.5rem', lineHeight: '1' }}>{option.icon}</span>
+                  <span style={{ fontSize: '0.9375rem', fontWeight: 'inherit' }}>{option.label}</span>
+                  {formData.animation_theme === option.value && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '8px',
+                      right: '8px',
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '50%',
+                      background: option.color,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: `0 2px 4px ${option.color}40`,
+                    }}>
+                      <span style={{ color: '#fff', fontSize: '0.75rem' }}>✓</span>
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
           </SectionCard>
 
           {/* Closing Message */}
