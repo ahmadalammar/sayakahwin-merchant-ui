@@ -57,7 +57,9 @@ const SectionCard = ({ icon, title, subtitle, badge, children }) => (
 
 const CreateEvent = () => {
   const [subscription, setSubscription] = useState(null)
-  const [schedules, setSchedules] = useState([{ title: '', date: '', end_time: '', address: '', address_url: '' }])
+  const [schedules, setSchedules] = useState([
+    { title: '', date: '', end_time: '', address: '', address_url: '', is_main_event: true },
+  ])
   const [itinerary, setItinerary] = useState([])
   const [gallery, setGallery] = useState([])
   const [contacts, setContacts] = useState([{ name: '', phone_number: '' }])

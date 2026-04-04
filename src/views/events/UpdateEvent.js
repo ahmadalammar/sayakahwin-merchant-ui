@@ -59,7 +59,9 @@ const SectionCard = ({ icon, title, subtitle, badge, children }) => (
 const UpdateEvent = () => {
   const { merchantId, eventId } = useParams()
   const [subscription, setSubscription] = useState(null)
-  const [schedules, setSchedules] = useState([{ title: '', date: '', address: '', address_url: '' }])
+  const [schedules, setSchedules] = useState([
+    { title: '', date: '', end_time: '', address: '', address_url: '', is_main_event: true },
+  ])
   const [itinerary, setItinerary] = useState([{ name: '', time: '' }])
   const [gallery, setGallery] = useState([])
   const [contacts, setContacts] = useState([{ name: '', phone_number: '' }])
@@ -151,6 +153,7 @@ const UpdateEvent = () => {
             } else {
               schedule.end_time = event.end_time.slice(0, 16)
             }
+            schedule.is_main_event = event.is_main_event === true
             return schedule
           }),
         )

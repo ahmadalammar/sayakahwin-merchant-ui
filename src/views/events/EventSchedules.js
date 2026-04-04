@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { CButton, CCol, CRow, CFormInput, CFormLabel } from '@coreui/react'
+import { CButton, CCol, CRow, CFormInput, CFormLabel, CFormCheck } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilTrash, cilPlus, cilLocationPin, cilClock } from '@coreui/icons'
 
@@ -121,7 +121,10 @@ const AddressSearch = ({ schedule, index, handleChange, required }) => {
 
 const EventSchedules = ({ schedules, setSchedules }) => {
   const handleAddSchedule = () => {
-    setSchedules([...schedules, { title: '', date: '', end_time: '', address: '', address_url: '' }])
+    setSchedules([
+      ...schedules,
+      { title: '', date: '', end_time: '', address: '', address_url: '', is_main_event: false },
+    ])
   }
 
   const handleRemoveSchedule = (index) => {
@@ -132,8 +135,19 @@ const EventSchedules = ({ schedules, setSchedules }) => {
 
   const handleChange = (e, index) => {
     const { name, value } = e.target
-    const newSchedules = [...schedules]
+    const newSchedules = schedules.map((s) => ({ ...s }))
     newSchedules[index][name] = value
+    setSchedules(newSchedules)
+  }
+
+  const handleMainEventChange = (index, checked) => {
+    const newSchedules = schedules.map((s) => ({ ...s }))
+    newSchedules[index].is_main_event = checked
+    if (checked) {
+      newSchedules.forEach((s, i) => {
+        if (i !== index) s.is_main_event = false
+      })
+    }
     setSchedules(newSchedules)
   }
 
@@ -241,6 +255,21 @@ const EventSchedules = ({ schedules, setSchedules }) => {
                   e.target.style.boxShadow = 'none'
                 }}
               />
+            </CCol>
+          </CRow>
+
+          <CRow className="g-3">
+            <CCol md={12}>
+              <CFormCheck
+                id={`is_main_event_${index}`}
+                label="Main event"
+                checked={schedule.is_main_event === true}
+                onChange={(e) => handleMainEventChange(index, e.target.checked)}
+                style={{ paddingTop: '4px' }}
+              />
+              <div className="text-muted" style={{ fontSize: '0.75rem', marginTop: '4px', marginLeft: '1.5rem' }}>
+                Mark which schedule is the primary ceremony (only one can be main).
+              </div>
             </CCol>
           </CRow>
           
