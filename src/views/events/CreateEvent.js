@@ -23,7 +23,7 @@ import {
   CAlert,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilInfo, cilHeart, cilCalendar, cilImage, cilEnvelopeClosed, cilCreditCard, cilPhone, cilCheckCircle, cilWarning, cilGlobeAlt, cilTag, cilUser, cilMediaPlay, cilStar } from '@coreui/icons'
+import { cilInfo, cilHeart, cilCalendar, cilImage, cilEnvelopeClosed, cilCreditCard, cilPhone, cilCheckCircle, cilWarning, cilGlobeAlt, cilTag, cilUser, cilMediaPlay, cilStar, cilMap, cilLayers } from '@coreui/icons'
 import api from '../../services/api'
 import authService from 'src/services/auth'
 import EventSchedules from './EventSchedules'
@@ -35,6 +35,7 @@ import QRCodeUpload from './QRCodeUpload'
 import SongUpload from './SongUpload'
 import GiftList from './GiftList'
 import PageTitle from '../../components/PageTitle'
+import EventAddonsSection from './EventAddonsSection'
 
 // SectionCard component moved outside to prevent re-creation on every render
 const SectionCard = ({ icon, title, subtitle, badge, children }) => (
@@ -72,6 +73,10 @@ const CreateEvent = () => {
   const [showSalamOpening, setShowSalamOpening] = useState(true)
   const [hideNotSure, setHideNotSure] = useState(false)
   const [allowCheckin, setAllowCheckin] = useState(false)
+  const [isReminderEnabled, setIsReminderEnabled] = useState(false)
+  const [isSeatingEnabled, setIsSeatingEnabled] = useState(false)
+  const [isGroupingFeatureEnabled, setIsGroupingFeatureEnabled] = useState(false)
+  const [isMixedEvent, setIsMixedEvent] = useState(false)
   const [useCustomTemplate, setUseCustomTemplate] = useState(false)
   const [customThemeFile, setCustomThemeFile] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -100,6 +105,9 @@ const CreateEvent = () => {
     rsvp_mode: '',
     animation_theme: '',
     lang: 'en',
+    hero_main_date: '',
+    hero_main_time_from: '',
+    hero_main_location: '',
   })
 
   useEffect(() => {
@@ -163,6 +171,10 @@ const CreateEvent = () => {
       eventData.append('show_wishlist', showWishlist)
       eventData.append('hide_not_sure', hideNotSure)
       eventData.append('allow_checkin', allowCheckin)
+      eventData.append('is_reminder_enabled', isReminderEnabled)
+      eventData.append('is_seating_enabled', isSeatingEnabled)
+      eventData.append('is_grouping_feature_enabled', isGroupingFeatureEnabled)
+      eventData.append('is_mixed_event', isMixedEvent)
       eventData.append('use_custom_template', useCustomTemplate)
 
       if (useCustomTemplate) {
@@ -420,6 +432,33 @@ const CreateEvent = () => {
                 />
                 {errors.bride_father_name && <div className="text-danger mt-1" style={{ fontSize: '0.8125rem' }}>{errors.bride_father_name}</div>}
               </CCol>
+              <CCol xs={12}>
+                <div
+                  className="p-3"
+                  style={{
+                    borderRadius: 12,
+                    border: '1px solid #E8E0F0',
+                    background: 'linear-gradient(120deg, rgba(45, 27, 78, 0.06) 0%, rgba(124, 58, 237, 0.05) 100%)',
+                  }}
+                >
+                  <CFormCheck
+                    id="isMixedEvent"
+                    checked={isMixedEvent}
+                    onChange={() => setIsMixedEvent(!isMixedEvent)}
+                    label={
+                      <span className="d-flex align-items-center gap-2 flex-wrap">
+                        <span style={{ fontWeight: 600 }}>Mixed event (groom and bride sides)</span>
+                        <CTooltip content='Shows labels such as "Groom side" and "Bride side" under parent names on the parent invite.'>
+                          <CIcon icon={cilInfo} className="text-muted" size="sm" />
+                        </CTooltip>
+                      </span>
+                    }
+                  />
+                  <p className="text-muted mb-0 mt-2 ps-4" style={{ fontSize: '0.8125rem', maxWidth: 640 }}>
+                    Use this when both families appear on the same card so guests can see which line is which.
+                  </p>
+                </div>
+              </CCol>
             </CRow>
             
             {/* Divider with elegant styling */}
@@ -664,6 +703,56 @@ const CreateEvent = () => {
             <EventSchedules schedules={schedules} setSchedules={setSchedules} errors={errors} />
           </SectionCard>
 
+          <SectionCard
+            icon={cilMap}
+            title="Featured event highlight"
+            subtitle="Optional main date, time, and location shown prominently on the card (e.g. for parent invite)"
+            badge="OPTIONAL"
+          >
+            <CRow className="g-3">
+              <CCol xs={12} md={4}>
+                <CFormLabel htmlFor="hero_main_date" className="d-flex align-items-center gap-1">
+                  <CIcon icon={cilCalendar} size="sm" className="text-muted" />
+                  Main date
+                </CFormLabel>
+                <CFormInput
+                  type="date"
+                  id="hero_main_date"
+                  name="hero_main_date"
+                  value={formData.hero_main_date}
+                  onChange={handleChange}
+                  style={{ borderRadius: 10, border: '1px solid #E5E0E8', background: '#FAF8F7' }}
+                />
+              </CCol>
+              <CCol xs={12} md={4}>
+                <CFormLabel htmlFor="hero_main_time_from">Main time</CFormLabel>
+                <CFormInput
+                  type="time"
+                  id="hero_main_time_from"
+                  name="hero_main_time_from"
+                  value={formData.hero_main_time_from}
+                  onChange={handleChange}
+                  style={{ borderRadius: 10, border: '1px solid #E5E0E8', background: '#FAF8F7' }}
+                />
+              </CCol>
+              <CCol xs={12} md={4}>
+                <CFormLabel htmlFor="hero_main_location" className="d-flex align-items-center gap-1">
+                  <CIcon icon={cilMap} size="sm" className="text-muted" />
+                  Main location
+                </CFormLabel>
+                <CFormInput
+                  type="text"
+                  id="hero_main_location"
+                  name="hero_main_location"
+                  placeholder="Venue or hall name"
+                  value={formData.hero_main_location}
+                  onChange={handleChange}
+                  style={{ borderRadius: 10, border: '1px solid #E5E0E8', background: '#FAF8F7' }}
+                />
+              </CCol>
+            </CRow>
+          </SectionCard>
+
           {/* Itinerary */}
           {!useCustomTemplate && (
             <SectionCard icon={cilCalendar} title="Event Itinerary" subtitle="Timeline of activities (Optional)">
@@ -771,6 +860,23 @@ const CreateEvent = () => {
             <ContactForm contacts={contacts} setContacts={setContacts} errors={errors} />
           </SectionCard>
 
+          <SectionCard
+            icon={cilLayers}
+            title="Add-on features"
+            subtitle="Optional tools for attendance, reminders, seating, and guest grouping"
+          >
+            <EventAddonsSection
+              allowCheckin={allowCheckin}
+              setAllowCheckin={setAllowCheckin}
+              isReminderEnabled={isReminderEnabled}
+              setIsReminderEnabled={setIsReminderEnabled}
+              isSeatingEnabled={isSeatingEnabled}
+              setIsSeatingEnabled={setIsSeatingEnabled}
+              isGroupingFeatureEnabled={isGroupingFeatureEnabled}
+              setIsGroupingFeatureEnabled={setIsGroupingFeatureEnabled}
+            />
+          </SectionCard>
+
           {/* RSVP Setting */}
           <SectionCard icon={cilCheckCircle} title="RSVP Setting" subtitle="Configure RSVP settings and wishes description" badge="OPTIONAL">
             <CFormCheck
@@ -786,22 +892,6 @@ const CreateEvent = () => {
               }
               checked={hideNotSure}
               onChange={() => setHideNotSure(!hideNotSure)}
-            />
-            
-            <CFormCheck
-              className="mb-4"
-              id="allowCheckin"
-              label={
-                <span className="d-flex align-items-center gap-2">
-                  <span>Enable Check-in & QR Code</span>
-                  <CBadge color="warning" style={{ fontSize: '0.7rem', padding: '2px 8px' }}>ADD-ON</CBadge>
-                  <CTooltip content="Enable QR code check-in functionality for event attendance tracking">
-                    <CIcon icon={cilInfo} className="text-muted" size="sm" />
-                  </CTooltip>
-                </span>
-              }
-              checked={allowCheckin}
-              onChange={() => setAllowCheckin(!allowCheckin)}
             />
             
             {/* RSVP Mode Selection */}
