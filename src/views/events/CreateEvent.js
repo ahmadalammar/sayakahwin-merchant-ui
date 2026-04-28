@@ -72,6 +72,8 @@ const CreateEvent = () => {
   const [showGiftInfo, setShowGiftInfo] = useState(false)
   const [showSalamOpening, setShowSalamOpening] = useState(true)
   const [hideNotSure, setHideNotSure] = useState(false)
+  const [addPhonenumber, setAddPhonenumber] = useState(true)
+  const [compulsoryPhonenumber, setCompulsoryPhonenumber] = useState(false)
   const [allowCheckin, setAllowCheckin] = useState(false)
   const [isReminderEnabled, setIsReminderEnabled] = useState(false)
   const [isSeatingEnabled, setIsSeatingEnabled] = useState(false)
@@ -170,6 +172,8 @@ const CreateEvent = () => {
       eventData.append('show_money_gift', showGiftInfo)
       eventData.append('show_wishlist', showWishlist)
       eventData.append('hide_not_sure', hideNotSure)
+      eventData.append('add_phonenumber', addPhonenumber)
+      eventData.append('compulsory_phonenumber', addPhonenumber && compulsoryPhonenumber)
       eventData.append('allow_checkin', allowCheckin)
       eventData.append('is_reminder_enabled', isReminderEnabled)
       eventData.append('is_seating_enabled', isSeatingEnabled)
@@ -892,6 +896,39 @@ const CreateEvent = () => {
               }
               checked={hideNotSure}
               onChange={() => setHideNotSure(!hideNotSure)}
+            />
+            <CFormCheck
+              className="mb-3"
+              id="addPhonenumber"
+              label={
+                <span className="d-flex align-items-center gap-1">
+                  Ask for guest phone number on RSVP
+                  <CTooltip content="When enabled, guests see a phone number field on the RSVP form. Turn off to hide it completely.">
+                    <CIcon icon={cilInfo} className="text-muted" size="sm" />
+                  </CTooltip>
+                </span>
+              }
+              checked={addPhonenumber}
+              onChange={() => {
+                const next = !addPhonenumber
+                setAddPhonenumber(next)
+                if (!next) setCompulsoryPhonenumber(false)
+              }}
+            />
+            <CFormCheck
+              className="mb-4"
+              id="compulsoryPhonenumber"
+              label={
+                <span className="d-flex align-items-center gap-1">
+                  Require phone number when shown
+                  <CTooltip content="Guests must fill in their phone number before submitting RSVP. Only applies when the phone field is shown.">
+                    <CIcon icon={cilInfo} className="text-muted" size="sm" />
+                  </CTooltip>
+                </span>
+              }
+              checked={compulsoryPhonenumber}
+              disabled={!addPhonenumber}
+              onChange={() => setCompulsoryPhonenumber(!compulsoryPhonenumber)}
             />
             
             {/* RSVP Mode Selection */}
