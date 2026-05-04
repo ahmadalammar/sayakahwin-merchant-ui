@@ -312,6 +312,7 @@ const CreateEvent = () => {
                   { code: 'en', name: 'English', flag: '🇬🇧' },
                   { code: 'ms', name: 'Bahasa Malaysia', flag: '🇲🇾' },
                   { code: 'id', name: 'Bahasa Indonesia', flag: '🇮🇩' },
+                  { code: 'zho', name: 'Chinese (Mandarin)', flag: '🇨🇳' },
                 ].map((lang) => (
                   <button
                     key={lang.code}
