@@ -36,6 +36,7 @@ import SongUpload from './SongUpload'
 import GiftList from './GiftList'
 import PageTitle from '../../components/PageTitle'
 import EventAddonsSection from './EventAddonsSection'
+import CustomTemplatePageAssetsSection from './CustomTemplatePageAssetsSection'
 
 // SectionCard component moved outside to prevent re-creation on every render
 const SectionCard = ({ icon, title, subtitle, badge, children }) => (
@@ -81,6 +82,10 @@ const CreateEvent = () => {
   const [isMixedEvent, setIsMixedEvent] = useState(false)
   const [useCustomTemplate, setUseCustomTemplate] = useState(false)
   const [customThemeFile, setCustomThemeFile] = useState(null)
+  const [customThemePreview, setCustomThemePreview] = useState(null)
+  const [customHero, setCustomHero] = useState(null)
+  const [customParentInvite, setCustomParentInvite] = useState(null)
+  const [customCover, setCustomCover] = useState(null)
   const [loading, setLoading] = useState(false)
   const [modal, setModal] = useState({ show: false, message: '', color: '' })
   const [selectedTemplate, setSelectedTemplate] = useState(null)
@@ -134,8 +139,12 @@ const CreateEvent = () => {
     }
   }
 
-  const handleFileChange = (e) => {
-    setCustomThemeFile(e.target.files[0])
+  const handleCustomThemeFileChange = (e) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setCustomThemeFile(file)
+      setCustomThemePreview(URL.createObjectURL(file))
+    }
   }
 
   const validate = () => {
@@ -184,6 +193,15 @@ const CreateEvent = () => {
       if (useCustomTemplate) {
         if (customThemeFile) {
           eventData.append('custom_theme', customThemeFile)
+        }
+        if (customHero?.file) {
+          eventData.append('custom_hero', customHero.file)
+        }
+        if (customParentInvite?.file) {
+          eventData.append('custom_parent_invite', customParentInvite.file)
+        }
+        if (customCover?.file) {
+          eventData.append('custom_cover', customCover.file)
         }
       } else {
         eventData.append('template_id', selectedTemplate)
@@ -296,11 +314,82 @@ const CreateEvent = () => {
         )}
 
         <CForm onSubmit={handleSubmit}>
+          {/* Design mode */}
+          <SectionCard icon={cilLayers} title="Invitation design" subtitle="Preset theme or upload your own custom template">
+            <CFormCheck
+              id="useCustomTemplateCreate"
+              label={
+                <span className="d-flex align-items-center gap-1 flex-wrap">
+                  <strong>Use custom template</strong>
+                  <span className="text-muted" style={{ fontSize: '0.875rem' }}>
+                    Hide the gallery and preset layouts; upload your main theme plus optional hero, parent invite, and cover images.
+                  </span>
+                </span>
+              }
+              checked={useCustomTemplate}
+              onChange={(e) => {
+                const on = e.target.checked
+                setUseCustomTemplate(on)
+                if (on) {
+                  setSelectedTemplate(null)
+                } else {
+                  setCustomThemeFile(null)
+                  setCustomThemePreview(null)
+                  setCustomHero(null)
+                  setCustomParentInvite(null)
+                  setCustomCover(null)
+                }
+              }}
+              className="mb-0"
+            />
+          </SectionCard>
+
           {/* Template Selection */}
           {!useCustomTemplate && (
             <>
               <TemplatePicker selectedTemplate={selectedTemplate} setSelectedTemplate={setSelectedTemplate} />
               {errors.template && <CAlert color="danger" className="mb-4">{errors.template}</CAlert>}
+            </>
+          )}
+
+          {useCustomTemplate && (
+            <>
+              <SectionCard icon={cilImage} title="Custom theme" subtitle="Main image or video for your custom invitation">
+                {customThemePreview &&
+                  (customThemeFile?.type?.startsWith('video') ? (
+                    <div className="text-center mb-3">
+                      <video
+                        src={customThemePreview}
+                        controls
+                        style={{ maxWidth: '320px', width: '100%', borderRadius: 12, boxShadow: '0 8px 24px rgba(45,27,78,0.12)' }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="text-center mb-3">
+                      <img
+                        src={customThemePreview}
+                        alt="Theme preview"
+                        style={{ maxWidth: '320px', width: '100%', height: 'auto', borderRadius: 12, boxShadow: '0 8px 24px rgba(45,27,78,0.12)' }}
+                      />
+                    </div>
+                  ))}
+                <CFormLabel htmlFor="custom_theme_create">Upload image or video</CFormLabel>
+                <CFormInput
+                  type="file"
+                  id="custom_theme_create"
+                  accept="image/*,video/*"
+                  onChange={handleCustomThemeFileChange}
+                  style={{ maxWidth: 400 }}
+                />
+              </SectionCard>
+              <CustomTemplatePageAssetsSection
+                customHero={customHero}
+                setCustomHero={setCustomHero}
+                customParentInvite={customParentInvite}
+                setCustomParentInvite={setCustomParentInvite}
+                customCover={customCover}
+                setCustomCover={setCustomCover}
+              />
             </>
           )}
 

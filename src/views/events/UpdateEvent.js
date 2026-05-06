@@ -37,6 +37,7 @@ import SongUpload from './SongUpload'
 import GiftList from './GiftList'
 import PageTitle from '../../components/PageTitle'
 import EventAddonsSection from './EventAddonsSection'
+import CustomTemplatePageAssetsSection from './CustomTemplatePageAssetsSection'
 
 // SectionCard component moved outside to prevent re-creation on every render
 const SectionCard = ({ icon, title, subtitle, badge, children }) => (
@@ -84,6 +85,9 @@ const UpdateEvent = () => {
   const [useCustomTemplate, setUseCustomTemplate] = useState(false)
   const [customThemeFile, setCustomThemeFile] = useState(null)
   const [customThemePreview, setCustomThemePreview] = useState(null)
+  const [customHero, setCustomHero] = useState(null)
+  const [customParentInvite, setCustomParentInvite] = useState(null)
+  const [customCover, setCustomCover] = useState(null)
   const [loading, setLoading] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
   const [modal, setModal] = useState({ show: false, message: '', color: '' })
@@ -202,6 +206,17 @@ const UpdateEvent = () => {
         if (data.theme_style === 'custom' && data.custom_url) {
           setCustomThemePreview(data.custom_url)
         }
+        const pickAssetUrl = (existing, fallback) => {
+          const v = existing || fallback
+          return v && String(v).trim() ? v : null
+        }
+        setCustomHero(
+          pickAssetUrl(data.existing_custom_hero, data.custom_hero_url),
+        )
+        setCustomParentInvite(
+          pickAssetUrl(data.existing_custom_parent_invite, data.custom_parent_invite_url),
+        )
+        setCustomCover(pickAssetUrl(data.existing_custom_cover, data.custom_cover_url))
         if (data.payment_qr_code_url) {
           setPaymentQRCode(data.payment_qr_code_url)
         }
@@ -304,6 +319,21 @@ const UpdateEvent = () => {
         } else if (customThemePreview) {
           eventData.append('existing_custom_theme', customThemePreview)
         }
+
+        const appendOptionalCustomAsset = (fileField, existingField, val) => {
+          if (val != null && typeof val === 'object' && val.file) {
+            eventData.append(fileField, val.file)
+          } else if (typeof val === 'string' && val.trim()) {
+            eventData.append(existingField, val)
+          }
+        }
+        appendOptionalCustomAsset('custom_hero', 'existing_custom_hero', customHero)
+        appendOptionalCustomAsset(
+          'custom_parent_invite',
+          'existing_custom_parent_invite',
+          customParentInvite,
+        )
+        appendOptionalCustomAsset('custom_cover', 'existing_custom_cover', customCover)
       } else {
         eventData.append('template_id', selectedTemplate)
       }
@@ -433,6 +463,29 @@ const UpdateEvent = () => {
         )}
 
         <CForm onSubmit={handleSubmit}>
+          <SectionCard icon={cilLayers} title="Invitation design" subtitle="Preset theme or upload your own custom template">
+            <CFormCheck
+              id="useCustomTemplateUpdate"
+              label={
+                <span className="d-flex align-items-center gap-1 flex-wrap">
+                  <strong>Use custom template</strong>
+                  <span className="text-muted" style={{ fontSize: '0.875rem' }}>
+                    Hide the gallery and preset layouts; upload your main theme plus optional page images.
+                  </span>
+                </span>
+              }
+              checked={useCustomTemplate}
+              onChange={(e) => {
+                const on = e.target.checked
+                setUseCustomTemplate(on)
+                if (on) {
+                  setSelectedTemplate(null)
+                }
+              }}
+              className="mb-0"
+            />
+          </SectionCard>
+
           {/* Template Selection */}
           {!useCustomTemplate && (
             <>
@@ -441,22 +494,51 @@ const UpdateEvent = () => {
             </>
           )}
 
-          {/* Custom Theme Preview */}
-          {useCustomTemplate && customThemePreview && (
-            <SectionCard icon={cilImage} title="Custom Theme" subtitle="Your uploaded custom design">
-              <div className="text-center">
-                <img 
-                  src={customThemePreview} 
-                  alt="Theme Preview" 
-                  style={{ maxWidth: '300px', height: 'auto', borderRadius: '8px' }} 
-                  crossOrigin="anonymous" 
+          {useCustomTemplate && (
+            <>
+              <SectionCard icon={cilImage} title="Custom theme" subtitle="Your main custom design (image or video)">
+                {customThemePreview &&
+                  (customThemeFile?.type?.startsWith('video') ? (
+                    <div className="text-center mb-3">
+                      <video
+                        src={customThemePreview}
+                        controls
+                        style={{ maxWidth: '320px', width: '100%', borderRadius: 12, boxShadow: '0 8px 24px rgba(45,27,78,0.12)' }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="text-center mb-3">
+                      <img
+                        src={
+                          customThemePreview.startsWith('http') || customThemePreview.startsWith('blob:')
+                            ? customThemePreview
+                            : `${config.API_BASE_URL}${customThemePreview}`
+                        }
+                        alt="Theme preview"
+                        style={{ maxWidth: '320px', width: '100%', height: 'auto', borderRadius: 12, boxShadow: '0 8px 24px rgba(45,27,78,0.12)' }}
+                        crossOrigin="anonymous"
+                      />
+                    </div>
+                  ))}
+                <CFormLabel htmlFor="custom_theme">Upload new image or video</CFormLabel>
+                <CFormInput
+                  type="file"
+                  id="custom_theme"
+                  name="custom_theme"
+                  accept="image/*,video/*"
+                  onChange={handleFileChange}
+                  style={{ maxWidth: 400 }}
                 />
-              </div>
-              <div className="mt-3">
-                <CFormLabel htmlFor="custom_theme">Upload New Image/Video</CFormLabel>
-                <CFormInput type="file" id="custom_theme" name="custom_theme" onChange={handleFileChange} />
-              </div>
-            </SectionCard>
+              </SectionCard>
+              <CustomTemplatePageAssetsSection
+                customHero={customHero}
+                setCustomHero={setCustomHero}
+                customParentInvite={customParentInvite}
+                setCustomParentInvite={setCustomParentInvite}
+                customCover={customCover}
+                setCustomCover={setCustomCover}
+              />
+            </>
           )}
 
           {/* Language Selection */}
