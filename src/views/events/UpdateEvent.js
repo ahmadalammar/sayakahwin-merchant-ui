@@ -470,7 +470,7 @@ const UpdateEvent = () => {
                 <span className="d-flex align-items-center gap-1 flex-wrap">
                   <strong>Use custom template</strong>
                   <span className="text-muted" style={{ fontSize: '0.875rem' }}>
-                    Hide the gallery and preset layouts; upload your main theme plus optional page images.
+                    Hide preset template layouts only; upload your main theme plus optional page images.
                   </span>
                 </span>
               }
@@ -879,8 +879,7 @@ const UpdateEvent = () => {
           </SectionCard>
 
           {/* Descriptions */}
-          {!useCustomTemplate && (
-            <SectionCard icon={cilEnvelopeClosed} title="Card Messages" subtitle="Customize the messages on your wedding card">
+          <SectionCard icon={cilEnvelopeClosed} title="Card Messages" subtitle="Customize the messages on your wedding card">
               <CFormCheck
                 className="mb-4"
                 id="showSalamOpening"
@@ -937,8 +936,7 @@ const UpdateEvent = () => {
                   />
                 </CCol>
               </CRow>
-            </SectionCard>
-          )}
+          </SectionCard>
 
           {/* Event Schedules */}
           <SectionCard icon={cilCalendar} title="Event Schedules" subtitle="Add your wedding ceremony dates and venues">
@@ -996,25 +994,19 @@ const UpdateEvent = () => {
           </SectionCard>
 
           {/* Itinerary */}
-          {!useCustomTemplate && (
-            <SectionCard icon={cilCalendar} title="Event Itinerary" subtitle="Timeline of activities (Optional)">
-              <EventItinerary itinerary={itinerary} setItinerary={setItinerary} />
-            </SectionCard>
-          )}
+          <SectionCard icon={cilCalendar} title="Event Itinerary" subtitle="Timeline of activities (Optional)">
+            <EventItinerary itinerary={itinerary} setItinerary={setItinerary} />
+          </SectionCard>
 
           {/* Gallery */}
-          {!useCustomTemplate && (
-            <SectionCard icon={cilImage} title="Our Moments" subtitle="Upload photos of the couple" badge="OPTIONAL">
-              <EventGallery images={gallery} setImages={setGallery} />
-            </SectionCard>
-          )}
+          <SectionCard icon={cilImage} title="Our Moments" subtitle="Upload photos of the couple" badge="OPTIONAL">
+            <EventGallery images={gallery} setImages={setGallery} />
+          </SectionCard>
 
           {/* Song Upload */}
-          {!useCustomTemplate && (
-            <SectionCard icon={cilMediaPlay} title="Event Song" subtitle="Upload a song for your event" badge="OPTIONAL">
-              <SongUpload song={song} setSong={setSong} />
-            </SectionCard>
-          )}
+          <SectionCard icon={cilMediaPlay} title="Event Song" subtitle="Upload a song for your event" badge="OPTIONAL">
+            <SongUpload song={song} setSong={setSong} />
+          </SectionCard>
 
           {/* Wishlist */}
           <SectionCard icon={cilHeart} title="Wishes & Gifts" subtitle="Add gift suggestions for your guests" badge="OPTIONAL">
