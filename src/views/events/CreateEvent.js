@@ -26,6 +26,7 @@ import CIcon from '@coreui/icons-react'
 import { cilInfo, cilHeart, cilCalendar, cilImage, cilEnvelopeClosed, cilCreditCard, cilPhone, cilCheckCircle, cilWarning, cilGlobeAlt, cilTag, cilUser, cilMediaPlay, cilStar, cilMap, cilLayers } from '@coreui/icons'
 import api from '../../services/api'
 import authService from 'src/services/auth'
+import { useSelfService } from '../../context/SelfServiceContext'
 import EventSchedules from './EventSchedules'
 import EventItinerary from './EventItinerary'
 import EventGallery from './EventGallery'
@@ -37,6 +38,8 @@ import GiftList from './GiftList'
 import PageTitle from '../../components/PageTitle'
 import EventAddonsSection from './EventAddonsSection'
 import CustomTemplatePageAssetsSection from './CustomTemplatePageAssetsSection'
+import EventFormWizardChrome, { EventFormWizardNav } from './EventFormWizardChrome'
+import EventFormErrorSummary, { firstErrorStepIndex } from './EventFormErrorSummary'
 
 // SectionCard component moved outside to prevent re-creation on every render
 const SectionCard = ({ icon, title, subtitle, badge, children }) => (
@@ -58,6 +61,8 @@ const SectionCard = ({ icon, title, subtitle, badge, children }) => (
 )
 
 const CreateEvent = () => {
+  const selfService = useSelfService()
+  const isSelfService = !!selfService
   const [subscription, setSubscription] = useState(null)
   const [schedules, setSchedules] = useState([
     { title: '', date: '', end_time: '', address: '', address_url: '', is_main_event: true },
@@ -81,14 +86,13 @@ const CreateEvent = () => {
   const [isGroupingFeatureEnabled, setIsGroupingFeatureEnabled] = useState(false)
   const [isMixedEvent, setIsMixedEvent] = useState(false)
   const [useCustomTemplate, setUseCustomTemplate] = useState(false)
-  const [customThemeFile, setCustomThemeFile] = useState(null)
-  const [customThemePreview, setCustomThemePreview] = useState(null)
   const [customHero, setCustomHero] = useState(null)
   const [customParentInvite, setCustomParentInvite] = useState(null)
   const [customCover, setCustomCover] = useState(null)
   const [loading, setLoading] = useState(false)
   const [modal, setModal] = useState({ show: false, message: '', color: '' })
   const [selectedTemplate, setSelectedTemplate] = useState(null)
+  const [wizardStep, setWizardStep] = useState(0)
   const [formData, setFormData] = useState({
     groom_name: '',
     groom_short_name: '',
@@ -118,17 +122,21 @@ const CreateEvent = () => {
   })
 
   useEffect(() => {
+    // In self-service mode the user is claiming a coupon, not consuming the
+    // merchant's subscription pool — no need to fetch subscription details.
+    if (isSelfService) return
     const fetchSubscription = async () => {
       try {
-        const user = authService.getCurrentUser()
-        const response = await api.get(`/merchant/${user.merchantId}/subscription`)
+        const merchantId = authService.getCurrentUser()?.merchantId
+        if (!merchantId) return
+        const response = await api.get(`/merchant/${merchantId}/subscription`)
         setSubscription(response.data)
       } catch (error) {
         console.error('Failed to fetch subscription:', error)
       }
     }
     fetchSubscription()
-  }, [])
+  }, [isSelfService])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -136,14 +144,6 @@ const CreateEvent = () => {
     // Clear error when user types
     if (errors[name]) {
       setErrors({ ...errors, [name]: null })
-    }
-  }
-
-  const handleCustomThemeFileChange = (e) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setCustomThemeFile(file)
-      setCustomThemePreview(URL.createObjectURL(file))
     }
   }
 
@@ -191,9 +191,6 @@ const CreateEvent = () => {
       eventData.append('use_custom_template', useCustomTemplate)
 
       if (useCustomTemplate) {
-        if (customThemeFile) {
-          eventData.append('custom_theme', customThemeFile)
-        }
         if (customHero?.file) {
           eventData.append('custom_hero', customHero.file)
         }
@@ -249,21 +246,43 @@ const CreateEvent = () => {
       }
 
       try {
-        const user = authService.getCurrentUser()
-        await api.post(`/merchant/${user.merchantId}/events`, eventData, {
+        const merchantId = isSelfService
+          ? selfService?.merchantId
+          : authService.getCurrentUser()?.merchantId
+        if (!merchantId) {
+          throw new Error('Unable to determine merchant. Please refresh and try again.')
+        }
+        const response = await api.post(`/merchant/${merchantId}/events`, eventData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         })
         setLoading(false)
-        setModal({ show: true, message: 'Event created successfully! Your wedding card is now ready.', color: 'success' })
+        const created = response?.data
+        if (isSelfService && typeof selfService?.onEventCreated === 'function') {
+          selfService.onEventCreated(created)
+        }
+        setModal({
+          show: true,
+          message: 'Event created successfully! Your wedding card is now ready.',
+          color: 'success',
+        })
       } catch (error) {
         setLoading(false)
         const message = error.response?.data?.message || error.message
         setModal({ show: true, message: `Error: ${message}`, color: 'danger' })
       }
     } else {
-      // Scroll to first error
+      // Jump to the wizard step containing the first error, then scroll up
+      const firstStep = firstErrorStepIndex(newErrors)
+      if (firstStep >= 0 && firstStep !== wizardStep) {
+        setWizardStep(firstStep)
+      }
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
+  }
+
+  const jumpToStep = (stepIndex) => {
+    setWizardStep(stepIndex)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   return (
@@ -304,16 +323,13 @@ const CreateEvent = () => {
         </div>
 
         {/* Validation Errors Summary */}
-        {Object.keys(errors).length > 0 && (
-          <CAlert color="danger" className="mb-4">
-            <div className="d-flex align-items-center gap-2">
-              <CIcon icon={cilWarning} />
-              <strong>Please fix the errors below before submitting</strong>
-            </div>
-          </CAlert>
-        )}
+        <EventFormErrorSummary errors={errors} onJumpToStep={jumpToStep} />
 
         <CForm onSubmit={handleSubmit}>
+          <EventFormWizardChrome activeStep={wizardStep} onStepChange={setWizardStep} />
+
+          {wizardStep === 0 && (
+          <>
           {/* Design mode */}
           <SectionCard icon={cilLayers} title="Invitation design" subtitle="Preset theme or upload your own custom template">
             <CFormCheck
@@ -322,7 +338,7 @@ const CreateEvent = () => {
                 <span className="d-flex align-items-center gap-1 flex-wrap">
                   <strong>Use custom template</strong>
                   <span className="text-muted" style={{ fontSize: '0.875rem' }}>
-                    Hide preset template layouts only; upload your main theme plus optional hero, parent invite, and cover images.
+                    Hide preset template layouts only; upload optional hero, parent invite, and cover images.
                   </span>
                 </span>
               }
@@ -333,8 +349,6 @@ const CreateEvent = () => {
                 if (on) {
                   setSelectedTemplate(null)
                 } else {
-                  setCustomThemeFile(null)
-                  setCustomThemePreview(null)
                   setCustomHero(null)
                   setCustomParentInvite(null)
                   setCustomCover(null)
@@ -354,34 +368,6 @@ const CreateEvent = () => {
 
           {useCustomTemplate && (
             <>
-              <SectionCard icon={cilImage} title="Custom theme" subtitle="Main image or video for your custom invitation">
-                {customThemePreview &&
-                  (customThemeFile?.type?.startsWith('video') ? (
-                    <div className="text-center mb-3">
-                      <video
-                        src={customThemePreview}
-                        controls
-                        style={{ maxWidth: '320px', width: '100%', borderRadius: 12, boxShadow: '0 8px 24px rgba(45,27,78,0.12)' }}
-                      />
-                    </div>
-                  ) : (
-                    <div className="text-center mb-3">
-                      <img
-                        src={customThemePreview}
-                        alt="Theme preview"
-                        style={{ maxWidth: '320px', width: '100%', height: 'auto', borderRadius: 12, boxShadow: '0 8px 24px rgba(45,27,78,0.12)' }}
-                      />
-                    </div>
-                  ))}
-                <CFormLabel htmlFor="custom_theme_create">Upload image or video</CFormLabel>
-                <CFormInput
-                  type="file"
-                  id="custom_theme_create"
-                  accept="image/*,video/*"
-                  onChange={handleCustomThemeFileChange}
-                  style={{ maxWidth: 400 }}
-                />
-              </SectionCard>
               <CustomTemplatePageAssetsSection
                 customHero={customHero}
                 setCustomHero={setCustomHero}
@@ -392,71 +378,11 @@ const CreateEvent = () => {
               />
             </>
           )}
+          </>
+          )}
 
-          {/* Language Selection */}
-          <SectionCard icon={cilGlobeAlt} title="Language" subtitle="Select the language for your wedding invitation">
-            <div className="language-selector">
-              <div className="d-flex gap-3 flex-wrap">
-                {[
-                  { code: 'en', name: 'English', flag: '🇬🇧' },
-                  { code: 'ms', name: 'Bahasa Malaysia', flag: '🇲🇾' },
-                  { code: 'id', name: 'Bahasa Indonesia', flag: '🇮🇩' },
-                  { code: 'zho', name: 'Chinese (Mandarin)', flag: '🇨🇳' },
-                ].map((lang) => (
-                  <button
-                    key={lang.code}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, lang: lang.code })}
-                    className={`language-option ${formData.lang === lang.code ? 'active' : ''}`}
-                    style={{
-                      flex: '1',
-                      minWidth: '150px',
-                      padding: '16px 24px',
-                      borderRadius: '12px',
-                      border: formData.lang === lang.code 
-                        ? '2px solid var(--sk-purple, #2D1B4E)' 
-                        : '2px solid #E5E0E8',
-                      background: formData.lang === lang.code 
-                        ? 'linear-gradient(135deg, rgba(45, 27, 78, 0.1) 0%, rgba(45, 27, 78, 0.05) 100%)' 
-                        : '#fff',
-                      color: formData.lang === lang.code ? 'var(--sk-purple, #2D1B4E)' : '#6c757d',
-                      fontWeight: formData.lang === lang.code ? '600' : '500',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '8px',
-                      boxShadow: formData.lang === lang.code 
-                        ? '0 4px 12px rgba(45, 27, 78, 0.15)' 
-                        : 'none',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (formData.lang !== lang.code) {
-                        e.currentTarget.style.borderColor = 'var(--sk-purple, #2D1B4E)'
-                        e.currentTarget.style.background = 'rgba(45, 27, 78, 0.05)'
-                        e.currentTarget.style.transform = 'translateY(-2px)'
-                        e.currentTarget.style.boxShadow = '0 4px 8px rgba(45, 27, 78, 0.1)'
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (formData.lang !== lang.code) {
-                        e.currentTarget.style.borderColor = '#E5E0E8'
-                        e.currentTarget.style.background = '#fff'
-                        e.currentTarget.style.transform = 'translateY(0)'
-                        e.currentTarget.style.boxShadow = 'none'
-                      }
-                    }}
-                  >
-                    <span style={{ fontSize: '2rem' }}>{lang.flag}</span>
-                    <span style={{ fontSize: '0.875rem' }}>{lang.name}</span>
-                    <span style={{ fontSize: '0.75rem', opacity: 0.7, textTransform: 'uppercase' }}>{lang.code}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </SectionCard>
-
+          {wizardStep === 1 && (
+          <>
           {/* Couple Information */}
           <SectionCard icon={cilHeart} title="Couple Information" subtitle="Enter the bride and groom details">
             <CRow className="g-3">
@@ -730,6 +656,75 @@ const CreateEvent = () => {
             </CRow>
           </SectionCard>
 
+          {/* Language Selection */}
+          <SectionCard icon={cilGlobeAlt} title="Language" subtitle="Select the language for your wedding invitation">
+            <div className="language-selector">
+              <div className="d-flex gap-3 flex-wrap">
+                {[
+                  { code: 'en', name: 'English', flag: '🇬🇧' },
+                  { code: 'ms', name: 'Bahasa Malaysia', flag: '🇲🇾' },
+                  { code: 'id', name: 'Bahasa Indonesia', flag: '🇮🇩' },
+                  { code: 'zho', name: 'Chinese (Mandarin)', flag: '🇨🇳' },
+                ].map((lang) => (
+                  <button
+                    key={lang.code}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, lang: lang.code })}
+                    className={`language-option ${formData.lang === lang.code ? 'active' : ''}`}
+                    style={{
+                      flex: '1',
+                      minWidth: '150px',
+                      padding: '16px 24px',
+                      borderRadius: '12px',
+                      border: formData.lang === lang.code 
+                        ? '2px solid var(--sk-purple, #2D1B4E)' 
+                        : '2px solid #E5E0E8',
+                      background: formData.lang === lang.code 
+                        ? 'linear-gradient(135deg, rgba(45, 27, 78, 0.1) 0%, rgba(45, 27, 78, 0.05) 100%)' 
+                        : '#fff',
+                      color: formData.lang === lang.code ? 'var(--sk-purple, #2D1B4E)' : '#6c757d',
+                      fontWeight: formData.lang === lang.code ? '600' : '500',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '8px',
+                      boxShadow: formData.lang === lang.code 
+                        ? '0 4px 12px rgba(45, 27, 78, 0.15)' 
+                        : 'none',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (formData.lang !== lang.code) {
+                        e.currentTarget.style.borderColor = 'var(--sk-purple, #2D1B4E)'
+                        e.currentTarget.style.background = 'rgba(45, 27, 78, 0.05)'
+                        e.currentTarget.style.transform = 'translateY(-2px)'
+                        e.currentTarget.style.boxShadow = '0 4px 8px rgba(45, 27, 78, 0.1)'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (formData.lang !== lang.code) {
+                        e.currentTarget.style.borderColor = '#E5E0E8'
+                        e.currentTarget.style.background = '#fff'
+                        e.currentTarget.style.transform = 'translateY(0)'
+                        e.currentTarget.style.boxShadow = 'none'
+                      }
+                    }}
+                  >
+                    <span style={{ fontSize: '2rem' }}>{lang.flag}</span>
+                    <span style={{ fontSize: '0.875rem' }}>{lang.name}</span>
+                    <span style={{ fontSize: '0.75rem', opacity: 0.7, textTransform: 'uppercase' }}>{lang.code}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </SectionCard>
+
+          </>
+          )}
+
+          {wizardStep === 2 && (
+          <>
           {/* Descriptions */}
           <SectionCard icon={cilEnvelopeClosed} title="Card Messages" subtitle="Customize the messages on your wedding card">
               <CFormCheck
@@ -787,9 +782,25 @@ const CreateEvent = () => {
                     onChange={handleChange}
                   />
                 </CCol>
+                <CCol xs={12}>
+                  <CFormLabel htmlFor="closing_message">Closing Message</CFormLabel>
+                  <CFormTextarea
+                    id="closing_message"
+                    name="closing_message"
+                    rows="3"
+                    placeholder="Thank you for being part of our special day..."
+                    value={formData.closing_message}
+                    onChange={handleChange}
+                  />
+                </CCol>
               </CRow>
           </SectionCard>
 
+          </>
+          )}
+
+          {wizardStep === 3 && (
+          <>
           {/* Event Schedules */}
           <SectionCard icon={cilCalendar} title="Event Schedules" subtitle="Add your wedding ceremony dates and venues">
             <EventSchedules schedules={schedules} setSchedules={setSchedules} errors={errors} />
@@ -850,16 +861,26 @@ const CreateEvent = () => {
             <EventItinerary itinerary={itinerary} setItinerary={setItinerary} />
           </SectionCard>
 
-          {/* Gallery */}
-          <SectionCard icon={cilImage} title="Our Moments" subtitle="Upload photos of the couple" badge="OPTIONAL">
-            <EventGallery images={gallery} setImages={setGallery} />
-          </SectionCard>
+          </>
+          )}
 
+          {wizardStep === 4 && (
+          <>
           {/* Song Upload */}
           <SectionCard icon={cilMediaPlay} title="Event Song" subtitle="Upload a song for your event" badge="OPTIONAL">
             <SongUpload song={song} setSong={setSong} />
           </SectionCard>
 
+          {/* Gallery */}
+          <SectionCard icon={cilImage} title="Our Moments" subtitle="Upload photos of the couple" badge="OPTIONAL">
+            <EventGallery images={gallery} setImages={setGallery} />
+          </SectionCard>
+
+          </>
+          )}
+
+          {wizardStep === 5 && (
+          <>
           {/* Wishlist */}
           <SectionCard icon={cilHeart} title="Wishes & Gifts" subtitle="Add gift suggestions for your guests" badge="OPTIONAL">
             <CFormCheck
@@ -941,26 +962,14 @@ const CreateEvent = () => {
             )}
           </SectionCard>
 
+          </>
+          )}
+
+          {wizardStep === 6 && (
+          <>
           {/* Contact Information */}
           <SectionCard icon={cilPhone} title="Contact Information" subtitle="Add contact persons for your guests">
             <ContactForm contacts={contacts} setContacts={setContacts} errors={errors} />
-          </SectionCard>
-
-          <SectionCard
-            icon={cilLayers}
-            title="Add-on features"
-            subtitle="Optional tools for attendance, reminders, seating, and guest grouping"
-          >
-            <EventAddonsSection
-              allowCheckin={allowCheckin}
-              setAllowCheckin={setAllowCheckin}
-              isReminderEnabled={isReminderEnabled}
-              setIsReminderEnabled={setIsReminderEnabled}
-              isSeatingEnabled={isSeatingEnabled}
-              setIsSeatingEnabled={setIsSeatingEnabled}
-              isGroupingFeatureEnabled={isGroupingFeatureEnabled}
-              setIsGroupingFeatureEnabled={setIsGroupingFeatureEnabled}
-            />
           </SectionCard>
 
           {/* RSVP Setting */}
@@ -1197,6 +1206,52 @@ const CreateEvent = () => {
             </CRow>
           </SectionCard>
 
+          </>
+          )}
+
+          {wizardStep === 7 && (
+          <>
+          <SectionCard
+            icon={cilLayers}
+            title="Add-on features"
+            subtitle="Optional tools for attendance, reminders, seating, and guest grouping"
+          >
+            <EventAddonsSection
+              allowCheckin={allowCheckin}
+              setAllowCheckin={setAllowCheckin}
+              isReminderEnabled={isReminderEnabled}
+              setIsReminderEnabled={setIsReminderEnabled}
+              isSeatingEnabled={isSeatingEnabled}
+              setIsSeatingEnabled={setIsSeatingEnabled}
+              isGroupingFeatureEnabled={isGroupingFeatureEnabled}
+              setIsGroupingFeatureEnabled={setIsGroupingFeatureEnabled}
+            />
+          </SectionCard>
+
+          </>
+          )}
+
+          {wizardStep === 8 && (
+          <>
+          <CCard className="mb-4 border-0" style={{ background: 'linear-gradient(135deg, rgba(45, 27, 78, 0.07) 0%, rgba(232, 160, 176, 0.12) 100%)', boxShadow: '0 8px 28px rgba(45, 27, 78, 0.08)' }}>
+            <CCardBody className="p-4">
+              <div className="d-flex align-items-start gap-3">
+                <div
+                  className="rounded-3 flex-shrink-0 d-flex align-items-center justify-content-center"
+                  style={{ width: 48, height: 48, background: 'rgba(45, 27, 78, 0.12)', color: 'var(--sk-purple, #2D1B4E)' }}
+                >
+                  <CIcon icon={cilStar} size="lg" />
+                </div>
+                <div>
+                  <h5 className="mb-2" style={{ color: 'var(--sk-purple, #2D1B4E)' }}>Almost there</h5>
+                  <p className="text-muted mb-0" style={{ fontSize: '0.9rem', lineHeight: 1.55 }}>
+                    Pick a subtle celebration animation for your card, then create your wedding invitation. You can always come back to edit details later.
+                  </p>
+                </div>
+              </div>
+            </CCardBody>
+          </CCard>
+
           {/* Animation */}
           <SectionCard icon={cilStar} title="Animation" subtitle="Choose a celebration animation for your invitation">
             <div className="d-flex gap-3 flex-wrap">
@@ -1276,34 +1331,18 @@ const CreateEvent = () => {
             </div>
           </SectionCard>
 
-          {/* Closing Message */}
-          <SectionCard icon={cilEnvelopeClosed} title="Closing Message" subtitle="End your invitation with a heartfelt message">
-            <CFormTextarea 
-              id="closing_message" 
-              name="closing_message" 
-              rows="3" 
-              placeholder="Thank you for being part of our special day..."
-              value={formData.closing_message} 
-              onChange={handleChange}
-            />
-          </SectionCard>
+          </>
+          )}
 
-          {/* Submit Button */}
-          <div className="d-flex justify-content-end gap-3 mb-4">
-            <CButton type="button" color="secondary" variant="outline" href="/#/events">
-              Cancel
-            </CButton>
-            <CButton type="submit" color="primary" disabled={loading} className="px-4">
-              {loading ? (
-                <>
-                  <CSpinner size="sm" className="me-2" />
-                  Creating...
-                </>
-              ) : (
-                'Create Wedding Card'
-              )}
-            </CButton>
-          </div>
+          <EventFormWizardNav
+            step={wizardStep}
+            setStep={setWizardStep}
+            loading={loading}
+            cancelHref={isSelfService ? undefined : '/#/events'}
+            hideCancel={isSelfService}
+            submitLabel={isSelfService ? 'Claim & Create Wedding Card' : 'Create Wedding Card'}
+            loadingSubmitLabel="Creating..."
+          />
         </CForm>
       </CContainer>
     </>

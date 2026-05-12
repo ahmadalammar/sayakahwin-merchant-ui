@@ -47,11 +47,46 @@ const getDashboardData = async () => {
   return response.data
 }
 
+const extractCouponsFromSubscription = (sub) => {
+  if (!sub) return []
+  if (Array.isArray(sub.coupons)) return sub.coupons
+  if (Array.isArray(sub.coupon)) return sub.coupon
+  if (Array.isArray(sub.history)) {
+    return sub.history.filter(
+      (h) => h && (h.transaction_type === 'coupon' || h.coupon_value),
+    )
+  }
+  return []
+}
+
+const getCoupons = async () => {
+  const user = authService.getCurrentUser()
+  if (!user || !user.merchantId) {
+    return []
+  }
+  const { merchantId } = user
+  const response = await api.get(`/merchant/${merchantId}/subscription`)
+  return extractCouponsFromSubscription(response.data)
+}
+
+const createCoupon = async (amount = 1) => {
+  const user = authService.getCurrentUser()
+  if (!user || !user.merchantId) {
+    throw new Error('Not authenticated')
+  }
+  const { merchantId } = user
+  const response = await api.post(`/merchant/${merchantId}/subscription/coupon`, { amount })
+  return response.data
+}
+
 const merchantService = {
   getSubscription,
   getLicense,
   getTransactionHistory,
   getDashboardData,
+  getCoupons,
+  createCoupon,
+  extractCouponsFromSubscription,
 }
 
 export default merchantService

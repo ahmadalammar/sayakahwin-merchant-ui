@@ -150,7 +150,7 @@ const CustomTemplatePageAssetsSection = ({
           <div>
             <strong style={{ color: purple }}>Custom page images</strong>
             <p className="text-muted mb-0" style={{ fontSize: '0.8125rem' }}>
-              Optional visuals for hero, parent invite, and cover when using your own template
+              Optional visuals for hero, parent invite, and cover when using your own template — hero, parent, cover
             </p>
           </div>
         </div>
