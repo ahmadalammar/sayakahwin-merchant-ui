@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   CCard,
   CCardBody,
@@ -39,9 +40,11 @@ import {
   cilCheckCircle,
   cilShareAlt,
   cilExternalLink,
+  cilPencil,
 } from '@coreui/icons'
 import merchantService from '../../services/merchantService'
 import authService from '../../services/auth'
+import config from 'src/config'
 import PageTitle from '../../components/PageTitle'
 
 const parseApiDate = (value) => {
@@ -113,6 +116,7 @@ const statusBadge = (status) => {
 }
 
 const Coupons = () => {
+  const navigate = useNavigate()
   const [coupons, setCoupons] = useState([])
   const [subscription, setSubscription] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -215,6 +219,23 @@ const Coupons = () => {
   useEffect(() => {
     loadData()
   }, [loadData])
+
+  const handleViewCard = (eventId) => {
+    if (!eventId) return
+    const user = authService.getCurrentUser()
+    const merchantId = user?.merchantId
+    if (!merchantId) return
+    const url = `${config.CARD_BASE_URL}/${merchantId}/${eventId}`
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+
+  const handleEditCard = (eventId) => {
+    if (!eventId) return
+    const user = authService.getCurrentUser()
+    const merchantId = user?.merchantId
+    if (!merchantId) return
+    navigate(`/merchant/${merchantId}/events/${eventId}`)
+  }
 
   const handleCopy = async (code) => {
     if (!code) return
@@ -594,6 +615,34 @@ const Coupons = () => {
                                       Share
                                     </CButton>
                                   </CTooltip>
+                                )}
+                                {coupon._status === 'used' && coupon._relatedEventId && (
+                                  <>
+                                    <CTooltip content="Open wedding card">
+                                      <CButton
+                                        color="info"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleViewCard(coupon._relatedEventId)}
+                                        className="d-inline-flex align-items-center gap-1"
+                                      >
+                                        <CIcon icon={cilExternalLink} size="sm" />
+                                        View
+                                      </CButton>
+                                    </CTooltip>
+                                    <CTooltip content="Edit wedding card">
+                                      <CButton
+                                        color="warning"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleEditCard(coupon._relatedEventId)}
+                                        className="d-inline-flex align-items-center gap-1"
+                                      >
+                                        <CIcon icon={cilPencil} size="sm" />
+                                        Edit
+                                      </CButton>
+                                    </CTooltip>
+                                  </>
                                 )}
                               </div>
                             ) : (

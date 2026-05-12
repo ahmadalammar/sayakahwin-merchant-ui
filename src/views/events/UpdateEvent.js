@@ -36,7 +36,7 @@ import QRCodeUpload from './QRCodeUpload'
 import SongUpload from './SongUpload'
 import GiftList from './GiftList'
 import PageTitle from '../../components/PageTitle'
-import EventAddonsSection from './EventAddonsSection'
+import EventAddonsSection, { isFeatureFlagEnabled } from './EventAddonsSection'
 import CustomTemplatePageAssetsSection from './CustomTemplatePageAssetsSection'
 import EventFormWizardChrome, { EventFormWizardNav } from './EventFormWizardChrome'
 import EventFormErrorSummary, { firstErrorStepIndex } from './EventFormErrorSummary'
@@ -66,7 +66,7 @@ const UpdateEvent = () => {
   const params = useParams()
   const merchantId = isSelfService ? selfService?.merchantId : params.merchantId
   const eventId = isSelfService ? selfService?.eventId : params.eventId
-  const [subscription, setSubscription] = useState(null)
+  const [subscription, setSubscription] = useState(selfService?.subscription || null)
   const [schedules, setSchedules] = useState([
     { title: '', date: '', end_time: '', address: '', address_url: '', is_main_event: true },
   ])
@@ -131,14 +131,19 @@ const UpdateEvent = () => {
       setInitialLoading(true)
       try {
         // In self-service mode the user is operating via a coupon, not the
-        // merchant's subscription — skip the subscription fetch.
+        // merchant's subscription. The add-on feature flags are already
+        // supplied via SelfServiceContext from the by-coupon response.
         const calls = [api.get(`/${merchantId}/${eventId}`)]
         if (!isSelfService) {
           calls.push(api.get(`/merchant/${merchantId}/subscription`))
         }
         const [eventResponse, subResponse] = await Promise.all(calls)
         const data = eventResponse.data
-        if (subResponse) setSubscription(subResponse.data)
+        if (subResponse) {
+          setSubscription(subResponse.data)
+        } else if (isSelfService && selfService?.subscription) {
+          setSubscription(selfService.subscription)
+        }
         setFormData({
           groom_name: data.groom_name || '',
           groom_short_name: data.groom_short_name || '',
@@ -1344,22 +1349,37 @@ const UpdateEvent = () => {
 
           {wizardStep === 7 && (
           <>
-          <SectionCard
-            icon={cilLayers}
-            title="Add-on features"
-            subtitle="Optional tools for attendance, reminders, seating, and guest grouping"
-          >
-            <EventAddonsSection
-              allowCheckin={allowCheckin}
-              setAllowCheckin={setAllowCheckin}
-              isReminderEnabled={isReminderEnabled}
-              setIsReminderEnabled={setIsReminderEnabled}
-              isSeatingEnabled={isSeatingEnabled}
-              setIsSeatingEnabled={setIsSeatingEnabled}
-              isGroupingFeatureEnabled={isGroupingFeatureEnabled}
-              setIsGroupingFeatureEnabled={setIsGroupingFeatureEnabled}
-            />
-          </SectionCard>
+          {!isFeatureFlagEnabled(subscription?.enable_addon) ? (
+            <CAlert color="info" className="mb-4">
+              <div className="d-flex align-items-start gap-2">
+                <CIcon icon={cilInfo} className="flex-shrink-0 mt-1" />
+                <div>
+                  <strong>Add-on features are not available on your current plan.</strong>
+                  <div className="text-muted" style={{ fontSize: '0.875rem' }}>
+                    Continue to the next step to finish editing your wedding card.
+                  </div>
+                </div>
+              </div>
+            </CAlert>
+          ) : (
+            <SectionCard
+              icon={cilLayers}
+              title="Add-on features"
+              subtitle="Optional tools for attendance, reminders, seating, and guest grouping"
+            >
+              <EventAddonsSection
+                subscription={subscription}
+                allowCheckin={allowCheckin}
+                setAllowCheckin={setAllowCheckin}
+                isReminderEnabled={isReminderEnabled}
+                setIsReminderEnabled={setIsReminderEnabled}
+                isSeatingEnabled={isSeatingEnabled}
+                setIsSeatingEnabled={setIsSeatingEnabled}
+                isGroupingFeatureEnabled={isGroupingFeatureEnabled}
+                setIsGroupingFeatureEnabled={setIsGroupingFeatureEnabled}
+              />
+            </SectionCard>
+          )}
 
           </>
           )}

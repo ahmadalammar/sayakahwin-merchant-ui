@@ -1,5 +1,5 @@
-import React from 'react'
-import { CTooltip, CBadge } from '@coreui/react'
+import React, { useEffect } from 'react'
+import { CTooltip, CBadge, CAlert } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilQrCode, cilBell, cilPeople, cilGrid, cilInfo } from '@coreui/icons'
 
@@ -107,7 +107,19 @@ const AddonToggleCard = ({
   </label>
 )
 
+// Treat a flag value as disabled when it's explicitly false / 0 / "0" / "false".
+// Missing values (undefined/null) default to enabled so loading and self-service
+// states keep the UI usable.
+export const isFeatureFlagEnabled = (value) => {
+  if (value === undefined || value === null) return true
+  if (value === false || value === 0 || value === '0' || value === 'false') return false
+  return true
+}
+
+const isFeatureEnabled = (subscription, key) => isFeatureFlagEnabled(subscription?.[key])
+
 const EventAddonsSection = ({
+  subscription,
   allowCheckin,
   setAllowCheckin,
   isReminderEnabled,
@@ -117,7 +129,25 @@ const EventAddonsSection = ({
   isGroupingFeatureEnabled,
   setIsGroupingFeatureEnabled,
 }) => {
-  const items = [
+  // When subscription flags change, clear any toggle the merchant no longer has access to.
+  useEffect(() => {
+    if (!subscription) return
+    if (!isFeatureEnabled(subscription, 'enable_qr_code') && allowCheckin) {
+      setAllowCheckin(false)
+    }
+    if (!isFeatureEnabled(subscription, 'enable_rsvp_reminders') && isReminderEnabled) {
+      setIsReminderEnabled(false)
+    }
+    if (!isFeatureEnabled(subscription, 'enable_seating_arrangement') && isSeatingEnabled) {
+      setIsSeatingEnabled(false)
+    }
+    if (!isFeatureEnabled(subscription, 'enable_event_grouping') && isGroupingFeatureEnabled) {
+      setIsGroupingFeatureEnabled(false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subscription])
+
+  const allItems = [
     {
       id: 'addon_allow_checkin',
       icon: cilQrCode,
@@ -126,6 +156,7 @@ const EventAddonsSection = ({
       checked: allowCheckin,
       onChange: setAllowCheckin,
       accent: '#d97706',
+      featureFlag: 'enable_qr_code',
     },
     {
       id: 'addon_reminder',
@@ -135,6 +166,7 @@ const EventAddonsSection = ({
       checked: isReminderEnabled,
       onChange: setIsReminderEnabled,
       accent: '#7c3aed',
+      featureFlag: 'enable_rsvp_reminders',
     },
     {
       id: 'addon_seating',
@@ -144,6 +176,7 @@ const EventAddonsSection = ({
       checked: isSeatingEnabled,
       onChange: setIsSeatingEnabled,
       accent: '#0d9488',
+      featureFlag: 'enable_seating_arrangement',
     },
     {
       id: 'addon_grouping',
@@ -153,8 +186,19 @@ const EventAddonsSection = ({
       checked: isGroupingFeatureEnabled,
       onChange: setIsGroupingFeatureEnabled,
       accent: '#2563eb',
+      featureFlag: 'enable_event_grouping',
     },
   ]
+
+  const items = allItems.filter((item) => isFeatureEnabled(subscription, item.featureFlag))
+
+  if (items.length === 0) {
+    return (
+      <CAlert color="info" className="mb-0">
+        Add-on features are not available on your current plan.
+      </CAlert>
+    )
+  }
 
   return (
     <div
@@ -175,9 +219,11 @@ const EventAddonsSection = ({
           gap: '1rem',
         }}
       >
-        {items.map((item) => (
-          <AddonToggleCard key={item.id} {...item} />
-        ))}
+        {items.map((item) => {
+          // strip non-DOM props before spreading
+          const { featureFlag, ...cardProps } = item
+          return <AddonToggleCard key={item.id} {...cardProps} />
+        })}
       </div>
     </div>
   )

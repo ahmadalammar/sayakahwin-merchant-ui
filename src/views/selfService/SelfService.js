@@ -106,12 +106,19 @@ const CouponBanner = ({ couponValue, amount, merchantName, mode }) => {
             <CIcon icon={cilHeart} size="sm" />
             Sayakahwin Self-Service
           </div>
-          <h3 className="mb-1 fw-semibold" style={{ fontSize: 'clamp(1.3rem, 3vw, 1.7rem)' }}>
+          <h3
+            className="mb-1 fw-semibold"
+            style={{
+              fontSize: 'clamp(1.3rem, 3vw, 1.7rem)',
+              color: '#fff',
+              textShadow: '0 1px 2px rgba(0,0,0,0.15)',
+            }}
+          >
             {mode === 'update'
               ? 'Continue your wedding card'
               : "You're invited to create your wedding card"}
           </h3>
-          <p className="mb-0" style={{ opacity: 0.85, fontSize: '0.95rem' }}>
+          <p className="mb-0" style={{ opacity: 0.92, fontSize: '0.95rem', color: '#fff' }}>
             {mode === 'update'
               ? 'Use this private link to edit your invitation any time.'
               : 'Use this private link to design and publish your invitation.'}
@@ -255,6 +262,29 @@ const SelfService = () => {
     responseMeta?.merchant?.brand_name ||
     null
 
+  // The by-coupon response also carries the merchant's add-on feature flags.
+  // Surface them as a subscription-like object so CreateEvent/UpdateEvent
+  // can apply the same hide/show rules used in the merchant flow.
+  const subscriptionFromCoupon = useMemo(() => {
+    if (!responseMeta) return null
+    const keys = [
+      'enable_addon',
+      'enable_qr_code',
+      'enable_seating_arrangement',
+      'enable_event_grouping',
+      'enable_rsvp_reminders',
+    ]
+    const subset = {}
+    let hasAnyFlag = false
+    keys.forEach((k) => {
+      if (Object.prototype.hasOwnProperty.call(responseMeta, k)) {
+        subset[k] = responseMeta[k]
+        hasAnyFlag = true
+      }
+    })
+    return hasAnyFlag ? subset : null
+  }, [responseMeta])
+
   if (loading) {
     return (
       <>
@@ -382,6 +412,7 @@ const SelfService = () => {
               eventId: existingEvent?.id || null,
               event: existingEvent,
               meta: responseMeta,
+              subscription: subscriptionFromCoupon,
               onEventCreated: handleEventCreated,
             }}
           >

@@ -311,16 +311,26 @@ const TemplatePicker = ({ selectedTemplate, setSelectedTemplate }) => {
         {templates.length > 0 ? (
           <>
             <CRow className="g-4 justify-content-center">
-              {templates.map((template) => (
-                <CCol key={template.id} xs={12} sm={6} lg={4} xl={3} className="d-flex justify-content-center">
-                  <PhoneMockup
-                    src={`${config.CARD_BASE_URL}/preview/${template.id}`}
-                    title={template.theme}
-                    isSelected={selectedTemplate === template.id}
-                    onClick={() => setSelectedTemplate(template.id)}
-                  />
-                </CCol>
-              ))}
+              {templates.map((template, index) => {
+                const designNumber = (currentPage - 1) * itemsPerPage + index + 1
+                return (
+                  <CCol
+                    key={template.id}
+                    xs={12}
+                    sm={6}
+                    lg={4}
+                    xl={3}
+                    className="d-flex justify-content-center"
+                  >
+                    <PhoneMockup
+                      src={`${config.CARD_BASE_URL}/preview/${template.id}`}
+                      title={`Design #${designNumber}`}
+                      isSelected={selectedTemplate === template.id}
+                      onClick={() => setSelectedTemplate(template.id)}
+                    />
+                  </CCol>
+                )
+              })}
             </CRow>
 
             {totalPages > 1 && (
