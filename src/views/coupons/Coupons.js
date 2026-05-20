@@ -603,19 +603,17 @@ const Coupons = () => {
                                     {copiedCode === coupon._code ? 'Copied' : 'Copy'}
                                   </CButton>
                                 </CTooltip>
-                                {coupon._status === 'active' && (
-                                  <CTooltip content="Share self-service link">
-                                    <CButton
-                                      color="primary"
-                                      size="sm"
-                                      onClick={() => handleShareLink(coupon)}
-                                      className="d-inline-flex align-items-center gap-1"
-                                    >
-                                      <CIcon icon={cilShareAlt} size="sm" />
-                                      Share
-                                    </CButton>
-                                  </CTooltip>
-                                )}
+                                <CTooltip content="Share self-service link">
+                                  <CButton
+                                    color="primary"
+                                    size="sm"
+                                    onClick={() => handleShareLink(coupon)}
+                                    className="d-inline-flex align-items-center gap-1"
+                                  >
+                                    <CIcon icon={cilShareAlt} size="sm" />
+                                    Share
+                                  </CButton>
+                                </CTooltip>
                                 {coupon._status === 'used' && coupon._relatedEventId && (
                                   <>
                                     <CTooltip content="Open wedding card">
