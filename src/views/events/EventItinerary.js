@@ -2,6 +2,23 @@ import React from 'react'
 import { CRow, CCol, CFormInput, CButton, CFormLabel } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilTrash, cilPlus } from '@coreui/icons'
+import { EMPTY_ITINERARY_ITEM, syncItineraryOrder } from './eventItineraryUtils'
+
+const reorderButtonStyle = {
+  width: '28px',
+  height: '28px',
+  borderRadius: '8px',
+  border: 'none',
+  background: 'rgba(45, 27, 78, 0.08)',
+  color: 'var(--sk-purple, #2D1B4E)',
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontSize: '0.875rem',
+  lineHeight: 1,
+  transition: 'all 0.2s ease',
+}
 
 const EventItinerary = ({ itinerary, setItinerary }) => {
   const handleItineraryChange = (index, e) => {
@@ -12,13 +29,22 @@ const EventItinerary = ({ itinerary, setItinerary }) => {
   }
 
   const handleAddItinerary = () => {
-    setItinerary([...itinerary, { name: '', time: '' }])
+    setItinerary(syncItineraryOrder([...itinerary, { ...EMPTY_ITINERARY_ITEM }]))
   }
 
   const handleRemoveItinerary = (index) => {
     const list = [...itinerary]
     list.splice(index, 1)
-    setItinerary(list)
+    setItinerary(syncItineraryOrder(list))
+  }
+
+  const handleMoveItinerary = (index, direction) => {
+    const newIndex = index + direction
+    if (newIndex < 0 || newIndex >= itinerary.length) return
+    const list = [...itinerary]
+    const [moved] = list.splice(index, 1)
+    list.splice(newIndex, 0, moved)
+    setItinerary(syncItineraryOrder(list))
   }
 
   return (
@@ -33,25 +59,48 @@ const EventItinerary = ({ itinerary, setItinerary }) => {
             border: '1px solid var(--sk-border, #E5E0E8)',
           }}
         >
-          {/* Remove Button */}
-          <button
+          <div
+            style={{
+              position: 'absolute',
+              top: '8px',
+              right: '8px',
+              display: 'flex',
+              gap: '4px',
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => handleMoveItinerary(index, -1)}
+              disabled={index === 0}
+              style={{
+                ...reorderButtonStyle,
+                opacity: index === 0 ? 0.35 : 1,
+                cursor: index === 0 ? 'not-allowed' : 'pointer',
+              }}
+              title="Move up"
+            >
+              ↑
+            </button>
+            <button
+              type="button"
+              onClick={() => handleMoveItinerary(index, 1)}
+              disabled={index === itinerary.length - 1}
+              style={{
+                ...reorderButtonStyle,
+                opacity: index === itinerary.length - 1 ? 0.35 : 1,
+                cursor: index === itinerary.length - 1 ? 'not-allowed' : 'pointer',
+              }}
+              title="Move down"
+            >
+              ↓
+            </button>
+            <button
               type="button"
               onClick={() => handleRemoveItinerary(index)}
               style={{
-                position: 'absolute',
-                top: '8px',
-                right: '8px',
-                width: '28px',
-                height: '28px',
-                borderRadius: '8px',
-                border: 'none',
+                ...reorderButtonStyle,
                 background: 'rgba(220, 53, 69, 0.1)',
                 color: '#dc3545',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.2s ease',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = '#dc3545'
@@ -65,6 +114,7 @@ const EventItinerary = ({ itinerary, setItinerary }) => {
             >
               <CIcon icon={cilTrash} size="sm" />
             </button>
+          </div>
           
           <CRow className="g-3">
             <CCol md={7}>

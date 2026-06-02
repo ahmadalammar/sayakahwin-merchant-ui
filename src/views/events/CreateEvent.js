@@ -29,6 +29,7 @@ import authService from 'src/services/auth'
 import { useSelfService } from '../../context/SelfServiceContext'
 import EventSchedules from './EventSchedules'
 import EventItinerary from './EventItinerary'
+import { serializeItineraryForApi } from './eventItineraryUtils'
 import EventGallery from './EventGallery'
 import TemplatePicker from './TemplatePicker'
 import ContactForm from './ContactForm'
@@ -212,8 +213,7 @@ const CreateEvent = () => {
       eventData.append('showSalamOpening', showSalamOpening)
       eventData.append('schedules', JSON.stringify(schedules))
 
-      const filteredItinerary = itinerary.filter((item) => item.name.trim() !== '')
-      eventData.append('itineraries', JSON.stringify(filteredItinerary))
+      eventData.append('itineraries', JSON.stringify(serializeItineraryForApi(itinerary)))
       eventData.append('contacts', JSON.stringify(contacts))
 
       gallery.forEach((image) => {

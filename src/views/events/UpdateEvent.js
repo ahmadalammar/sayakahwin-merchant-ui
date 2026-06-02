@@ -29,6 +29,7 @@ import api from '../../services/api'
 import { useSelfService } from '../../context/SelfServiceContext'
 import EventSchedules from './EventSchedules'
 import EventItinerary from './EventItinerary'
+import { normalizeItineraryFromApi, serializeItineraryForApi } from './eventItineraryUtils'
 import EventGallery from './EventGallery'
 import TemplatePicker from './TemplatePicker'
 import ContactForm from './ContactForm'
@@ -190,7 +191,7 @@ const UpdateEvent = () => {
             return schedule
           }),
         )
-        setItinerary(data.itineraries || [{ name: '', time: '' }])
+        setItinerary(normalizeItineraryFromApi(data.itineraries))
         setGallery(data.gallery_images || [])
         setContacts(data.contacts || [{ name: '', phone_number: '' }])
         setGifts(data.gifts || [])
@@ -345,8 +346,7 @@ const UpdateEvent = () => {
       eventData.append('showSalamOpening', showSalamOpening)
       eventData.append('schedules', JSON.stringify(schedules))
 
-      const filteredItinerary = itinerary.filter((item) => item.name.trim() !== '')
-      eventData.append('itineraries', JSON.stringify(filteredItinerary))
+      eventData.append('itineraries', JSON.stringify(serializeItineraryForApi(itinerary)))
       eventData.append('contacts', JSON.stringify(contacts))
 
       const existingImages = []
