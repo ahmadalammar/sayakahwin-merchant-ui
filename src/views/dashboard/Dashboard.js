@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   CCard,
   CCardBody,
@@ -16,15 +17,44 @@ import {
   CAlert,
   CContainer,
   CBadge,
+  CButton,
 } from '@coreui/react'
 import { CChartLine, CChartBar } from '@coreui/react-chartjs'
 import CIcon from '@coreui/icons-react'
-import { cilCalendar, cilCreditCard, cilSpeedometer, cilStar } from '@coreui/icons'
+import {
+  cilCalendar,
+  cilCreditCard,
+  cilSpeedometer,
+  cilStar,
+  cilTags,
+  cilPlus,
+  cilArrowRight,
+  cilColorPalette,
+} from '@coreui/icons'
 import merchantService from '../../services/merchantService'
 import authService from '../../services/auth'
 import PageTitle from '../../components/PageTitle'
 
+const parseApiDate = (value) => {
+  if (!value) return null
+  const str = String(value).trim()
+  if (str.includes('T')) return new Date(str)
+  const d = new Date(str.replace(' ', 'T') + 'Z')
+  return isNaN(d.getTime()) ? new Date(value) : d
+}
+
+const formatDate = (value) => {
+  const d = parseApiDate(value)
+  if (!d || isNaN(d.getTime())) return '—'
+  return d.toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
 const Dashboard = () => {
+  const navigate = useNavigate()
   const [dashboardData, setDashboardData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -32,12 +62,11 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      // Check if user is authenticated before making API call
       if (!user || !user.merchantId) {
         setLoading(false)
         return
       }
-      
+
       try {
         const data = await merchantService.getDashboardData()
         if (data) {
@@ -92,142 +121,246 @@ const Dashboard = () => {
   const { license, upcomingEvents, trendyTemplates, daily_chart_data } = dashboardData
 
   const creditUsage =
-    ((license.total_credits - license.event_credits_remaining) / license.total_credits) * 100
+    license.total_credits > 0
+      ? ((license.total_credits - license.event_credits_remaining) / license.total_credits) * 100
+      : 0
   const creditsUsed = license.total_credits - license.event_credits_remaining
 
-  const daysRemaining = Math.max(
-    0,
-    Math.ceil((new Date(license.end_date) - new Date()) / (1000 * 60 * 60 * 24))
-  )
+  const endDate = parseApiDate(license.end_date)
+  const daysRemaining = endDate
+    ? Math.max(0, Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : 0
+
+  const quickActions = [
+    {
+      title: 'Issue coupon',
+      description: 'Get a Studio link for your customer',
+      icon: cilTags,
+      to: '/coupons',
+      color: 'purple',
+    },
+    {
+      title: 'Create event',
+      description: 'Start a new wedding card',
+      icon: cilPlus,
+      to: '/events/create',
+      color: 'pink',
+    },
+    {
+      title: 'Browse templates',
+      description: 'Explore card designs',
+      icon: cilColorPalette,
+      to: '/templates',
+      color: 'navy',
+    },
+    {
+      title: 'View events',
+      description: 'Manage all your events',
+      icon: cilCalendar,
+      to: '/events',
+      color: 'cream',
+    },
+  ]
+
+  const statCards = [
+    {
+      label: 'Credits available',
+      value: license.event_credits_remaining,
+      sub: `of ${license.total_credits} total`,
+      icon: cilCreditCard,
+      to: '/license',
+      accent: 'purple',
+    },
+    {
+      label: 'Upcoming events',
+      value: upcomingEvents?.length || 0,
+      sub: 'scheduled soon',
+      icon: cilCalendar,
+      to: '/events',
+      accent: 'pink',
+    },
+    {
+      label: 'Cards created',
+      value: creditsUsed,
+      sub: `${creditUsage.toFixed(0)}% of credits used`,
+      icon: cilSpeedometer,
+      to: '/events',
+      accent: 'navy',
+    },
+    {
+      label: 'Days remaining',
+      value: daysRemaining,
+      sub: `until ${formatDate(license.end_date)}`,
+      icon: cilStar,
+      to: '/license',
+      accent: 'gold',
+    },
+  ]
 
   return (
     <>
       <PageTitle title="Dashboard" description="View your license, credits, and event statistics" />
       <CContainer fluid>
-        {/* Welcome Banner */}
-        <div className="dashboard-welcome">
-          <h2>Welcome back{user?.name ? `, ${user.name}` : ''}!</h2>
-          <p>Here's an overview of your wedding card business</p>
+        {/* Welcome + quick actions */}
+        <div className="dashboard-hero mb-4">
+          <CRow className="align-items-center g-4">
+            <CCol lg={6}>
+              <p className="dashboard-hero-eyebrow mb-2">Merchant portal</p>
+              <h2 className="dashboard-hero-title mb-2">
+                Welcome back{user?.name ? `, ${user.name}` : ''}
+              </h2>
+              <p className="dashboard-hero-text mb-0">
+                Manage wedding cards, issue Studio coupons, and track your subscription — all in
+                one place.
+              </p>
+            </CCol>
+            <CCol lg={6}>
+              <div className="dashboard-quick-actions">
+                {quickActions.map((action) => (
+                  <Link key={action.to} to={action.to} className={`dashboard-quick-action dashboard-quick-action--${action.color}`}>
+                    <div className="dashboard-quick-action-icon">
+                      <CIcon icon={action.icon} />
+                    </div>
+                    <div className="dashboard-quick-action-text">
+                      <strong>{action.title}</strong>
+                      <span>{action.description}</span>
+                    </div>
+                    <CIcon icon={cilArrowRight} className="dashboard-quick-action-arrow" size="sm" />
+                  </Link>
+                ))}
+              </div>
+            </CCol>
+          </CRow>
         </div>
 
         {/* Stats Cards */}
-        <CRow className="mb-4">
-          <CCol sm={6} lg={3}>
-            <CCard className="h-100">
-              <CCardBody className="stat-card">
-                <div className="stat-icon">
-                  <CIcon icon={cilCreditCard} />
-                </div>
-                <div className="stat-value">{license.event_credits_remaining}</div>
-                <div className="stat-label">Credits Remaining</div>
-              </CCardBody>
-            </CCard>
-          </CCol>
-          <CCol sm={6} lg={3}>
-            <CCard className="h-100">
-              <CCardBody className="stat-card">
-                <div className="stat-icon">
-                  <CIcon icon={cilCalendar} />
-                </div>
-                <div className="stat-value">{upcomingEvents?.length || 0}</div>
-                <div className="stat-label">Upcoming Events</div>
-              </CCardBody>
-            </CCard>
-          </CCol>
-          <CCol sm={6} lg={3}>
-            <CCard className="h-100">
-              <CCardBody className="stat-card">
-                <div className="stat-icon">
-                  <CIcon icon={cilSpeedometer} />
-                </div>
-                <div className="stat-value">{creditsUsed}</div>
-                <div className="stat-label">Cards Created</div>
-              </CCardBody>
-            </CCard>
-          </CCol>
-          <CCol sm={6} lg={3}>
-            <CCard className="h-100">
-              <CCardBody className="stat-card">
-                <div className="stat-icon">
-                  <CIcon icon={cilStar} />
-                </div>
-                <div className="stat-value">{daysRemaining}</div>
-                <div className="stat-label">Days Remaining</div>
-              </CCardBody>
-            </CCard>
-          </CCol>
+        <CRow className="mb-4 g-3">
+          {statCards.map((stat) => (
+            <CCol sm={6} lg={3} key={stat.label}>
+              <Link to={stat.to} className="dashboard-stat-link">
+                <CCard className={`h-100 dashboard-stat-card dashboard-stat-card--${stat.accent}`}>
+                  <CCardBody className="stat-card dashboard-stat-card-body">
+                    <div className="stat-icon">
+                      <CIcon icon={stat.icon} />
+                    </div>
+                    <div className="stat-value">{stat.value}</div>
+                    <div className="stat-label">{stat.label}</div>
+                    <div className="dashboard-stat-sub">{stat.sub}</div>
+                  </CCardBody>
+                </CCard>
+              </Link>
+            </CCol>
+          ))}
         </CRow>
 
-        {/* License Card */}
-        <CRow className="mb-4">
-          <CCol xs={12}>
-            <CCard className="card-primary">
+        {/* License + coupon CTA */}
+        <CRow className="mb-4 g-3">
+          <CCol lg={8}>
+            <CCard className="card-primary h-100">
               <CCardHeader>
-                <div className="d-flex justify-content-between align-items-center">
+                <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
                   <div>
-                    <strong>License & Subscription</strong>
-                    <p className="text-muted mb-0">Your current package details</p>
+                    <strong>License & subscription</strong>
+                    <p className="text-muted mb-0">Your current package and credit usage</p>
                   </div>
                   <CBadge className="badge-navy px-3 py-2">{license.package_name}</CBadge>
                 </div>
               </CCardHeader>
               <CCardBody>
-                <CRow>
-                  <CCol md={6} className="mb-3 mb-md-0">
-                    <div className="d-flex flex-column gap-2">
-                      <div className="d-flex justify-content-between">
-                        <span className="text-muted">Package</span>
+                <CRow className="align-items-center">
+                  <CCol md={5} className="mb-3 mb-md-0">
+                    <div className="dashboard-license-details">
+                      <div className="dashboard-license-row">
+                        <span>Package</span>
                         <strong>{license.package_name}</strong>
                       </div>
-                      <div className="d-flex justify-content-between">
-                        <span className="text-muted">Valid Until</span>
-                        <strong>{new Date(license.end_date).toLocaleDateString()}</strong>
+                      <div className="dashboard-license-row">
+                        <span>Valid until</span>
+                        <strong>{formatDate(license.end_date)}</strong>
                       </div>
-                      <div className="d-flex justify-content-between">
-                        <span className="text-muted">Total Credits</span>
+                      <div className="dashboard-license-row">
+                        <span>Total credits</span>
                         <strong>{license.total_credits}</strong>
                       </div>
                     </div>
                   </CCol>
-                  <CCol md={6}>
-                    <div className="text-md-end mb-2">
-                      <span className="text-muted">Credit Usage</span>
-                      <h4 className="mb-0 mt-1">
-                        {license.event_credits_remaining} / {license.total_credits}
-                      </h4>
+                  <CCol md={7}>
+                    <div className="dashboard-credit-meter">
+                      <div className="d-flex justify-content-between align-items-end mb-2">
+                        <div>
+                          <span className="text-muted d-block" style={{ fontSize: '0.8125rem' }}>
+                            Credits remaining
+                          </span>
+                          <span className="dashboard-credit-big">
+                            {license.event_credits_remaining}
+                            <span className="dashboard-credit-of"> / {license.total_credits}</span>
+                          </span>
+                        </div>
+                        <span className="text-muted" style={{ fontSize: '0.8125rem' }}>
+                          {creditUsage.toFixed(0)}% used
+                        </span>
+                      </div>
+                      <CProgress value={creditUsage} className="dashboard-credit-progress mb-2" />
+                      <div className="d-flex gap-2 flex-wrap">
+                        <Link to="/license" className="btn btn-sm btn-outline-secondary">
+                          View license
+                        </Link>
+                        <Link to="/coupons" className="btn btn-sm btn-primary">
+                          <CIcon icon={cilTags} className="me-1" size="sm" />
+                          Issue coupon
+                        </Link>
+                      </div>
                     </div>
-                    <CProgress value={creditUsage} className="mb-1" />
-                    <p className="text-muted text-end mb-0" style={{ fontSize: '0.75rem' }}>
-                      {creditUsage.toFixed(0)}% used
-                    </p>
                   </CCol>
                 </CRow>
+              </CCardBody>
+            </CCard>
+          </CCol>
+
+          <CCol lg={4}>
+            <CCard className="h-100 dashboard-coupon-cta">
+              <CCardBody className="d-flex flex-column h-100">
+                <div className="dashboard-coupon-cta-icon mb-3">
+                  <CIcon icon={cilTags} size="xl" />
+                </div>
+                <h5 className="mb-2">Share a Studio link</h5>
+                <p className="text-muted flex-grow-1" style={{ fontSize: '0.875rem' }}>
+                  Issue a coupon and send your customer a ready-to-use link. They create their card
+                  in Studio — you stay in control of credits.
+                </p>
+                <CButton color="primary" className="w-100 mt-2" onClick={() => navigate('/coupons')}>
+                  Go to coupons
+                  <CIcon icon={cilArrowRight} className="ms-2" size="sm" />
+                </CButton>
               </CCardBody>
             </CCard>
           </CCol>
         </CRow>
 
         {/* Charts Row */}
-        <CRow className="mb-4">
+        <CRow className="mb-4 g-3">
           {daily_chart_data && daily_chart_data.length > 0 && (
             <CCol lg={7}>
               <CCard className="h-100">
                 <CCardHeader>
-                  <strong>Activity Overview</strong>
+                  <strong>Activity overview</strong>
                   <p className="text-muted mb-0">Events and wishes over time</p>
                 </CCardHeader>
                 <CCardBody>
                   <CChartLine
                     data={{
-                      labels: daily_chart_data.map((d) => 
-                        new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                      labels: daily_chart_data.map((d) =>
+                        new Date(d.date).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                        }),
                       ),
                       datasets: [
                         {
                           label: 'Events',
-                          backgroundColor: 'rgba(30, 58, 95, 0.1)',
-                          borderColor: '#1E3A5F',
-                          pointBackgroundColor: '#1E3A5F',
+                          backgroundColor: 'rgba(45, 27, 78, 0.08)',
+                          borderColor: '#2D1B4E',
+                          pointBackgroundColor: '#2D1B4E',
                           pointBorderColor: '#fff',
                           data: daily_chart_data.map((d) => d.events),
                           tension: 0.4,
@@ -235,9 +368,9 @@ const Dashboard = () => {
                         },
                         {
                           label: 'Wishes',
-                          backgroundColor: 'rgba(201, 169, 98, 0.1)',
-                          borderColor: '#C9A962',
-                          pointBackgroundColor: '#C9A962',
+                          backgroundColor: 'rgba(232, 160, 176, 0.15)',
+                          borderColor: '#E8A0B0',
+                          pointBackgroundColor: '#E8A0B0',
                           pointBorderColor: '#fff',
                           data: daily_chart_data.map((d) => d.wishes),
                           tension: 0.4,
@@ -246,16 +379,8 @@ const Dashboard = () => {
                       ],
                     }}
                     options={{
-                      plugins: {
-                        legend: {
-                          position: 'top',
-                        }
-                      },
-                      scales: {
-                        y: {
-                          beginAtZero: true,
-                        },
-                      },
+                      plugins: { legend: { position: 'top' } },
+                      scales: { y: { beginAtZero: true } },
                       maintainAspectRatio: false,
                     }}
                     style={{ height: '280px' }}
@@ -264,11 +389,11 @@ const Dashboard = () => {
               </CCard>
             </CCol>
           )}
-          
+
           <CCol lg={daily_chart_data && daily_chart_data.length > 0 ? 5 : 12}>
             <CCard className="h-100">
               <CCardHeader>
-                <strong>Popular Templates</strong>
+                <strong>Popular templates</strong>
                 <p className="text-muted mb-0">Most used by your clients</p>
               </CCardHeader>
               <CCardBody>
@@ -279,31 +404,27 @@ const Dashboard = () => {
                       datasets: [
                         {
                           label: 'Usage',
-                          backgroundColor: '#1E3A5F',
-                          borderRadius: 4,
+                          backgroundColor: '#2D1B4E',
+                          borderRadius: 6,
                           data: trendyTemplates.map((t) => t.usage_count),
                         },
                       ],
                     }}
                     options={{
                       indexAxis: 'y',
-                      plugins: {
-                        legend: {
-                          display: false
-                        }
-                      },
-                      scales: {
-                        x: {
-                          beginAtZero: true,
-                        },
-                      },
+                      plugins: { legend: { display: false } },
+                      scales: { x: { beginAtZero: true } },
                       maintainAspectRatio: false,
                     }}
                     style={{ height: '280px' }}
                   />
                 ) : (
-                  <div className="text-center text-muted py-4">
-                    No template data available
+                  <div className="dashboard-empty-chart">
+                    <CIcon icon={cilColorPalette} size="3xl" className="text-muted mb-3" />
+                    <p className="text-muted mb-3">No template data yet</p>
+                    <Link to="/templates" className="btn btn-sm btn-outline-primary">
+                      Browse templates
+                    </Link>
                   </div>
                 )}
               </CCardBody>
@@ -312,50 +433,84 @@ const Dashboard = () => {
         </CRow>
 
         {/* Upcoming Events */}
-        <CRow>
-          <CCol xs={12}>
-            <CCard>
-              <CCardHeader>
-                <strong>Upcoming Events</strong>
+        <CCard>
+          <CCardHeader>
+            <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div>
+                <strong>Upcoming events</strong>
                 <p className="text-muted mb-0">Events scheduled in the coming days</p>
-              </CCardHeader>
-              <CCardBody>
-                {upcomingEvents && upcomingEvents.length > 0 ? (
-                  <div className="table-responsive">
-                    <CTable hover>
-                      <CTableHead>
-                        <CTableRow>
-                          <CTableHeaderCell>Event Name</CTableHeaderCell>
-                          <CTableHeaderCell>Schedule</CTableHeaderCell>
-                          <CTableHeaderCell>Date</CTableHeaderCell>
-                        </CTableRow>
-                      </CTableHead>
-                      <CTableBody>
-                        {upcomingEvents.map((event) => (
-                          <CTableRow key={event.id}>
-                            <CTableDataCell data-label="Event">
-                              <strong>{event.name}</strong>
-                            </CTableDataCell>
-                            <CTableDataCell data-label="Schedule">
-                              {event.latest_schedule_title}
-                            </CTableDataCell>
-                            <CTableDataCell data-label="Date">
-                              {new Date(event.latest_schedule_date).toLocaleDateString()}
-                            </CTableDataCell>
-                          </CTableRow>
-                        ))}
-                      </CTableBody>
-                    </CTable>
-                  </div>
-                ) : (
-                  <CAlert color="info" className="mb-0">
-                    No upcoming events scheduled.
-                  </CAlert>
-                )}
-              </CCardBody>
-            </CCard>
-          </CCol>
-        </CRow>
+              </div>
+              {(upcomingEvents?.length ?? 0) > 0 && (
+                <Link to="/events" className="btn btn-sm btn-outline-secondary">
+                  View all
+                  <CIcon icon={cilArrowRight} className="ms-1" size="sm" />
+                </Link>
+              )}
+            </div>
+          </CCardHeader>
+          <CCardBody>
+            {upcomingEvents && upcomingEvents.length > 0 ? (
+              <div className="table-responsive">
+                <CTable hover className="dashboard-events-table">
+                  <CTableHead>
+                    <CTableRow>
+                      <CTableHeaderCell>Event</CTableHeaderCell>
+                      <CTableHeaderCell>Schedule</CTableHeaderCell>
+                      <CTableHeaderCell>Date</CTableHeaderCell>
+                      <CTableHeaderCell className="text-end">Action</CTableHeaderCell>
+                    </CTableRow>
+                  </CTableHead>
+                  <CTableBody>
+                    {upcomingEvents.map((event) => (
+                      <CTableRow key={event.id}>
+                        <CTableDataCell data-label="Event">
+                          <strong>{event.name}</strong>
+                        </CTableDataCell>
+                        <CTableDataCell data-label="Schedule">
+                          {event.latest_schedule_title}
+                        </CTableDataCell>
+                        <CTableDataCell data-label="Date">
+                          {formatDate(event.latest_schedule_date)}
+                        </CTableDataCell>
+                        <CTableDataCell data-label="Action" className="text-end">
+                          <CButton
+                            color="primary"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              navigate(`/merchant/${user.merchantId}/events/${event.id}`)
+                            }
+                          >
+                            Edit
+                            <CIcon icon={cilArrowRight} className="ms-1" size="sm" />
+                          </CButton>
+                        </CTableDataCell>
+                      </CTableRow>
+                    ))}
+                  </CTableBody>
+                </CTable>
+              </div>
+            ) : (
+              <div className="dashboard-empty-events">
+                <CIcon icon={cilCalendar} size="3xl" className="text-muted mb-3" />
+                <h5>No upcoming events</h5>
+                <p className="text-muted mb-3">
+                  Create your first wedding card or issue a coupon for a customer.
+                </p>
+                <div className="d-flex gap-2 justify-content-center flex-wrap">
+                  <CButton color="primary" onClick={() => navigate('/events/create')}>
+                    <CIcon icon={cilPlus} className="me-1" />
+                    Create event
+                  </CButton>
+                  <CButton color="primary" variant="outline" onClick={() => navigate('/coupons')}>
+                    <CIcon icon={cilTags} className="me-1" />
+                    Issue coupon
+                  </CButton>
+                </div>
+              </div>
+            )}
+          </CCardBody>
+        </CCard>
       </CContainer>
     </>
   )

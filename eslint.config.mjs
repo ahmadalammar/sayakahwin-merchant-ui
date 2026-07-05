@@ -4,7 +4,7 @@ import eslintPluginReactHooks from 'eslint-plugin-react-hooks'
 import globals from 'globals'
 
 export default [
-  { ignores: ['eslint.config.mjs'] },
+  { ignores: ['eslint.config.mjs', 'build/**', 'dist/**', 'node_modules/**'] },
   {
     ...eslintPluginReact.configs.flat.recommended,
     ...eslintPluginReact.configs.flat['jsx-runtime'],
@@ -35,5 +35,8 @@ export default [
       ...eslintPluginReactHooks.configs.recommended.rules,
     },
   },
-  eslintPluginPrettierRecommended,
+  {
+    ...eslintPluginPrettierRecommended,
+    files: ['src/**/*.{js,jsx}'],
+  },
 ]

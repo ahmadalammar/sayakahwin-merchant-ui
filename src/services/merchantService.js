@@ -69,15 +69,26 @@ const getCoupons = async () => {
   return extractCouponsFromSubscription(response.data)
 }
 
-const createCoupon = async (amount = 1) => {
+const issueCoupon = async ({
+  amount = 1,
+  enable_rsvp = true,
+  enable_bundle_standard = true,
+} = {}) => {
   const user = authService.getCurrentUser()
   if (!user || !user.merchantId) {
     throw new Error('Not authenticated')
   }
   const { merchantId } = user
-  const response = await api.post(`/merchant/${merchantId}/subscription/coupon`, { amount })
+  const response = await api.post(`/merchant/${merchantId}/subscription/coupon`, {
+    amount,
+    enable_rsvp,
+    enable_bundle_standard,
+  })
   return response.data
 }
+
+/** @deprecated Use issueCoupon */
+const createCoupon = async (amount = 1) => issueCoupon({ amount })
 
 const merchantService = {
   getSubscription,
@@ -85,6 +96,7 @@ const merchantService = {
   getTransactionHistory,
   getDashboardData,
   getCoupons,
+  issueCoupon,
   createCoupon,
   extractCouponsFromSubscription,
 }

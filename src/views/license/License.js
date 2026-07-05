@@ -25,6 +25,11 @@ import { cilCreditCard, cilCalendar, cilHistory } from '@coreui/icons'
 import merchantService from '../../services/merchantService'
 import authService from '../../services/auth'
 import PageTitle from '../../components/PageTitle'
+import {
+  reservedCredits,
+  effectiveAvailableCredits,
+  pendingCoupons,
+} from '../../utils/subscriptionCredits'
 
 // Parse "YYYY-MM-DD HH:mm:ss" (treated as UTC) into a Date safely across browsers
 const parseApiDate = (value) => {
@@ -115,16 +120,25 @@ const License = () => {
     })
   }, [licenseData])
 
-  const { totalCredits, usedCredits, creditUsagePct } = useMemo(() => {
+  const creditStats = useMemo(() => {
     const remaining = Number(licenseData?.event_credits_remaining ?? 0)
-    // "Used" = anything that draws down credits (event deductions + coupons issued)
-    const outflowTypes = new Set(['deduction', 'coupon'])
+    const reserved = reservedCredits(licenseData?.history)
+    const effective = effectiveAvailableCredits(licenseData)
+    const pendingCount = pendingCoupons(licenseData?.history ?? []).length
+    // Credits consumed when cards are created (deductions), not when coupons are issued
     const used = transactions
-      .filter((t) => outflowTypes.has(t.transaction_type))
+      .filter((t) => t.transaction_type === 'deduction')
       .reduce((sum, t) => sum + Number(t.amount || 0), 0)
-    const total = used + remaining
+    const total = used + remaining + reserved
     const pct = total > 0 ? Math.min(100, (used / total) * 100) : 0
-    return { totalCredits: total, usedCredits: used, creditUsagePct: pct }
+    return {
+      totalCredits: total,
+      usedCredits: used,
+      creditUsagePct: pct,
+      reserved,
+      effective,
+      pendingCount,
+    }
   }, [licenseData, transactions])
 
   const daysRemaining = useMemo(() => {
@@ -204,9 +218,14 @@ const License = () => {
 
   const renderAmount = (transaction) => {
     const amount = Number(transaction.amount || 0)
-    const isOutflow =
-      transaction.transaction_type === 'deduction' || transaction.transaction_type === 'coupon'
-    if (isOutflow) {
+    if (transaction.transaction_type === 'coupon') {
+      return (
+        <span className="text-muted" style={{ fontSize: '0.875rem' }}>
+          {amount} credit{amount === 1 ? '' : 's'} on use
+        </span>
+      )
+    }
+    if (transaction.transaction_type === 'deduction') {
       return (
         <strong style={{ color: 'var(--sk-danger, #dc3545)' }}>
           −{amount} {amount === 1 ? 'credit' : 'credits'}
@@ -261,18 +280,40 @@ const License = () => {
       <CContainer fluid>
         {/* Stats Overview */}
         <CRow className="mb-4">
-          <CCol md={4}>
+          <CCol md={3}>
             <CCard className="h-100">
               <CCardBody className="stat-card">
                 <div className="stat-icon">
                   <CIcon icon={cilCreditCard} />
                 </div>
                 <div className="stat-value">{licenseData.event_credits_remaining}</div>
-                <div className="stat-label">Credits Remaining</div>
+                <div className="stat-label">Available Credits</div>
               </CCardBody>
             </CCard>
           </CCol>
-          <CCol md={4}>
+          <CCol md={3}>
+            <CCard className="h-100">
+              <CCardBody className="stat-card">
+                <div className="stat-icon">
+                  <CIcon icon={cilHistory} />
+                </div>
+                <div className="stat-value">{creditStats.reserved}</div>
+                <div className="stat-label">Reserved (Pending Coupons)</div>
+              </CCardBody>
+            </CCard>
+          </CCol>
+          <CCol md={3}>
+            <CCard className="h-100">
+              <CCardBody className="stat-card">
+                <div className="stat-icon">
+                  <CIcon icon={cilCalendar} />
+                </div>
+                <div className="stat-value">{creditStats.pendingCount}</div>
+                <div className="stat-label">Pending Coupons</div>
+              </CCardBody>
+            </CCard>
+          </CCol>
+          <CCol md={3}>
             <CCard className="h-100">
               <CCardBody className="stat-card">
                 <div className="stat-icon">
@@ -280,17 +321,6 @@ const License = () => {
                 </div>
                 <div className="stat-value">{daysRemaining}</div>
                 <div className="stat-label">Days Remaining</div>
-              </CCardBody>
-            </CCard>
-          </CCol>
-          <CCol md={4}>
-            <CCard className="h-100">
-              <CCardBody className="stat-card">
-                <div className="stat-icon">
-                  <CIcon icon={cilHistory} />
-                </div>
-                <div className="stat-value">{transactions.length}</div>
-                <div className="stat-label">Total Transactions</div>
               </CCardBody>
             </CCard>
           </CCol>
@@ -325,9 +355,13 @@ const License = () => {
                         <span className="text-muted">End Date</span>
                         <strong>{formatDate(licenseData.end_date)}</strong>
                       </div>
+                      <div className="d-flex justify-content-between pb-2 border-bottom">
+                        <span className="text-muted">Effective Available</span>
+                        <strong>{creditStats.effective}</strong>
+                      </div>
                       <div className="d-flex justify-content-between">
                         <span className="text-muted">Total Credits</span>
-                        <strong>{totalCredits}</strong>
+                        <strong>{creditStats.totalCredits}</strong>
                       </div>
                     </div>
                   </CCol>
@@ -336,15 +370,15 @@ const License = () => {
                       <h6 className="text-muted mb-3">Credit Usage</h6>
                       <div className="d-flex justify-content-between mb-2">
                         <span>Used</span>
-                        <strong>{usedCredits}</strong>
+                        <strong>{creditStats.usedCredits}</strong>
                       </div>
-                      <CProgress value={creditUsagePct} className="mb-3" />
+                      <CProgress value={creditStats.creditUsagePct} className="mb-3" />
                       <div
                         className="d-flex justify-content-between text-muted"
                         style={{ fontSize: '0.875rem' }}
                       >
-                        <span>{creditUsagePct.toFixed(0)}% used</span>
-                        <span>{licenseData.event_credits_remaining} remaining</span>
+                        <span>{creditStats.creditUsagePct.toFixed(0)}% used</span>
+                        <span>{licenseData.event_credits_remaining} available</span>
                       </div>
                     </div>
                   </CCol>
