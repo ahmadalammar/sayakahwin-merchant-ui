@@ -92,6 +92,25 @@ contact@sayakahwin.com
 Beautiful invitations for beautiful celebrations.`
 }
 
+const WHATSAPP_FOLLOW_UP_MESSAGE = `Hi! Thank you for choosing Sayakahwin. 💕
+
+We noticed that you've created your invitation card in our Studio. ✨
+
+If you'd like to enhance your invitation, we also offer features such as Smart RSVP, Music, Photo Gallery, Digital Angpow, Gift Wishlist, QR Registration & Check-in, Seat Arrangement, and Guest Reminder Service.
+
+Feel free to let us know if you'd like to proceed with any of these features. We'd be happy to assist you! 💖`
+
+const normalizeWhatsAppPhone = (phone) => {
+  if (!phone) return ''
+  return String(phone).replace(/\D/g, '')
+}
+
+export const buildWhatsAppUrl = (phone) => {
+  const digits = normalizeWhatsAppPhone(phone)
+  if (!digits) return ''
+  return `https://wa.me/${digits}?text=${encodeURIComponent(WHATSAPP_FOLLOW_UP_MESSAGE)}`
+}
+
 const EventViewModal = ({ visible, event, onClose }) => {
   const [copied, setCopied] = useState(false)
   const [copying, setCopying] = useState(false)
@@ -100,6 +119,7 @@ const EventViewModal = ({ visible, event, onClose }) => {
   const groomShort = event?.groom_short_name || ''
   const phone = event?.contact_phone || ''
   const email = event?.email || ''
+  const whatsappUrl = useMemo(() => buildWhatsAppUrl(phone), [phone])
   const preferences = useMemo(() => parsePreferences(event?.preferences), [event?.preferences])
 
   const welcomeEmail = useMemo(
@@ -221,8 +241,14 @@ const EventViewModal = ({ visible, event, onClose }) => {
                   Phone
                 </div>
                 <div className="event-view-info-value">
-                  {phone ? (
-                    <a href={`tel:${phone}`} className="event-view-phone-link">
+                  {whatsappUrl ? (
+                    <a
+                      href={whatsappUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="event-view-phone-link"
+                      title="Open WhatsApp"
+                    >
                       {phone}
                     </a>
                   ) : (
