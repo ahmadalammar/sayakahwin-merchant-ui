@@ -41,11 +41,11 @@ import {
   cilExternalLink,
   cilLockLocked,
   cilSettings,
-  cilCheckCircle
+  cilCheckCircle,
 } from '@coreui/icons'
 import authService from 'src/services/auth'
-import config from 'src/config'
 import PageTitle from '../../components/PageTitle'
+import EventViewModal from './EventViewModal'
 
 const Events = () => {
   const navigate = useNavigate()
@@ -61,6 +61,8 @@ const Events = () => {
   const [newPassword, setNewPassword] = useState('')
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
+  const [showViewModal, setShowViewModal] = useState(false)
+  const [viewEvent, setViewEvent] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -118,10 +120,14 @@ const Events = () => {
 
   const pageCount = Math.ceil(filteredTotal / itemsPerPage)
 
-  const handleView = (eventId) => {
-    const user = authService.getCurrentUser()
-    const url = `${config.CARD_BASE_URL}/${user.merchantId}/${eventId}`
-    window.open(url, '_blank')
+  const handleView = (event) => {
+    setViewEvent(event)
+    setShowViewModal(true)
+  }
+
+  const handleCloseViewModal = () => {
+    setShowViewModal(false)
+    setViewEvent(null)
   }
 
   const handleShowCredentials = (event) => {
@@ -286,10 +292,10 @@ const Events = () => {
                                 color="info"
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleView(event.id)}
+                                onClick={() => handleView(event)}
                                 className="d-flex align-items-center gap-1"
                               >
-                                <CIcon icon={cilExternalLink} size="sm" />
+                                <CIcon icon={cilInfo} size="sm" />
                                 View
                               </CButton>
                               <CButton
@@ -388,6 +394,12 @@ const Events = () => {
             )}
           </CCardBody>
         </CCard>
+
+        <EventViewModal
+          visible={showViewModal}
+          event={viewEvent}
+          onClose={handleCloseViewModal}
+        />
 
         {/* Credentials Modal */}
         <CModal visible={showCredentialsModal} onClose={() => setShowCredentialsModal(false)}>
