@@ -5,8 +5,12 @@ import {
   CButton,
   CForm,
   CFormInput,
+  CInputGroup,
+  CInputGroupText,
   CSpinner,
 } from '@coreui/react'
+import CIcon from '@coreui/icons-react'
+import { cilLockLocked, cilUser } from '@coreui/icons'
 import { GoogleLogin } from '@react-oauth/google'
 import authService from 'src/services/auth'
 import PageTitle from 'src/components/PageTitle'
@@ -60,54 +64,82 @@ const Login = () => {
         title="Login" 
         description="Sign in to your Sayakahwin Merchant Dashboard to manage your wedding cards and events" 
       />
-      <div className="login-page">
+      <div className="login-page" data-coreui-theme="light">
+        <div className="login-page__decor" aria-hidden="true">
+          <span className="login-page__orb login-page__orb--1" />
+          <span className="login-page__orb login-page__orb--2" />
+          <span className="login-page__orb login-page__orb--3" />
+        </div>
+
         <div className="login-card">
-          {/* Header with Logo */}
-          <div className="login-header">
-            <h1 className="brand-title">sayakahwin ✦</h1>
-            <p className="brand-subtitle">Merchant Dashboard</p>
+          <div className="login-brand-panel">
+            <div className="login-brand-panel__content">
+              <div className="login-brand-panel__badge">Merchant Portal</div>
+              <h1 className="brand-title">
+                sayakahwin <span className="brand-sparkle">✦</span>
+              </h1>
+              <p className="brand-tagline">
+                Manage wedding cards, events, and invitations — all in one beautiful dashboard.
+              </p>
+              <ul className="login-brand-panel__features">
+                <li>Digital invitation cards</li>
+                <li>Event & guest management</li>
+                <li>Templates & licensing</li>
+              </ul>
+            </div>
           </div>
-          
-          {/* Login Form */}
+
           <div className="login-body">
-            <h2 className="login-title">Welcome Back</h2>
-            <p className="login-subtitle">Sign in to manage your wedding cards</p>
-            
+            <div className="login-body__header">
+              <h2 className="login-title">Welcome back</h2>
+              <p className="login-subtitle">Sign in to continue to your dashboard</p>
+            </div>
+
             {error && (
-              <CAlert color="danger">
+              <CAlert color="danger" className="login-alert">
                 {error}
               </CAlert>
             )}
-            
-            <CForm onSubmit={handleLogin}>
+
+            <CForm onSubmit={handleLogin} className="login-form">
               <div className="mb-3">
-                <label className="form-label">Username or Email</label>
-                <CFormInput
-                  type="text"
-                  placeholder="Enter your username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  autoComplete="username"
-                  required
-                />
+                <label className="form-label login-form-label">Username or Email</label>
+                <CInputGroup className="login-input-group">
+                  <CInputGroupText>
+                    <CIcon icon={cilUser} />
+                  </CInputGroupText>
+                  <CFormInput
+                    type="text"
+                    placeholder="Enter your username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    autoComplete="username"
+                    required
+                  />
+                </CInputGroup>
               </div>
-              
-              <div className="mb-3">
-                <label className="form-label">Password</label>
-                <CFormInput
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
-                  required
-                />
+
+              <div className="mb-4">
+                <label className="form-label login-form-label">Password</label>
+                <CInputGroup className="login-input-group">
+                  <CInputGroupText>
+                    <CIcon icon={cilLockLocked} />
+                  </CInputGroupText>
+                  <CFormInput
+                    type="password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="current-password"
+                    required
+                  />
+                </CInputGroup>
               </div>
-              
-              <CButton 
-                type="submit" 
-                color="primary" 
-                className="w-100"
+
+              <CButton
+                type="submit"
+                color="primary"
+                className="w-100 login-btn"
                 disabled={loading}
               >
                 {loading ? (
@@ -120,12 +152,12 @@ const Login = () => {
                 )}
               </CButton>
             </CForm>
-            
+
             <div className="login-divider">
-              <span>or</span>
+              <span>or continue with</span>
             </div>
-            
-            <div className="d-flex justify-content-center">
+
+            <div className="login-google-wrap">
               <GoogleLogin
                 onSuccess={handleGoogleLoginSuccess}
                 onError={handleGoogleLoginError}
@@ -134,13 +166,13 @@ const Login = () => {
                 text="signin_with"
               />
             </div>
-            
-            <div className="text-center mt-4">
-              <p className="text-muted mb-0" style={{ fontSize: '0.875rem' }}>
-                Don't have an account?{' '}
-                <a 
-                  href="https://sayakahwin.com" 
-                  target="_blank" 
+
+            <div className="login-footer">
+              <p>
+                Don&apos;t have an account?{' '}
+                <a
+                  href="https://sayakahwin.com"
+                  target="_blank"
                   rel="noopener noreferrer"
                 >
                   Contact us
