@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import {
   CButton,
@@ -35,9 +34,7 @@ import CIcon from '@coreui/icons-react'
 import { 
   cilInfo, 
   cilCalendar, 
-  cilPlus, 
   cilSearch, 
-  cilPencil, 
   cilExternalLink,
   cilLockLocked,
   cilSettings,
@@ -48,7 +45,6 @@ import PageTitle from '../../components/PageTitle'
 import EventViewModal from './EventViewModal'
 
 const Events = () => {
-  const navigate = useNavigate()
   const [allEvents, setAllEvents] = useState([])
   const [events, setEvents] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -191,16 +187,6 @@ const Events = () => {
                   </div>
                 </div>
               </CCol>
-              <CCol xs="auto">
-                <CButton 
-                  color="primary" 
-                  onClick={() => navigate('/events/create')}
-                  className="d-flex align-items-center gap-2"
-                >
-                  <CIcon icon={cilPlus} />
-                  Create Event
-                </CButton>
-              </CCol>
             </CRow>
           </CCardHeader>
           <CCardBody>
@@ -232,21 +218,11 @@ const Events = () => {
               <CAlert color="info" className="text-center py-5">
                 <CIcon icon={cilCalendar} size="3xl" className="mb-3 text-muted" />
                 <h5>{searchTerm ? 'No events match your search' : 'No events yet'}</h5>
-                <p className="mb-3">
+                <p className="mb-0">
                   {searchTerm 
                     ? 'Try adjusting your search terms.'
-                    : 'Create your first wedding event to get started!'}
+                    : 'No events have been added yet.'}
                 </p>
-                {!searchTerm && (
-                  <CButton 
-                    color="primary" 
-                    onClick={() => navigate('/events/create')}
-                    className="d-flex align-items-center gap-2 mx-auto"
-                  >
-                    <CIcon icon={cilPlus} />
-                    Create Your First Event
-                  </CButton>
-                )}
               </CAlert>
             ) : (
               <>
@@ -297,19 +273,6 @@ const Events = () => {
                               >
                                 <CIcon icon={cilInfo} size="sm" />
                                 View
-                              </CButton>
-                              <CButton
-                                color="warning"
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  const user = authService.getCurrentUser()
-                                  navigate(`/merchant/${user.merchantId}/events/${event.id}`)
-                                }}
-                                className="d-flex align-items-center gap-1"
-                              >
-                                <CIcon icon={cilPencil} size="sm" />
-                                Edit
                               </CButton>
                               <CDropdown>
                                 <CDropdownToggle color="secondary" size="sm" variant="outline">
