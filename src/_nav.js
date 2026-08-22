@@ -5,7 +5,6 @@ import {
   cilSpeedometer,
   cilCreditCard,
   cilCalendar,
-  cilColorPalette,
   cilTags,
 } from '@coreui/icons'
 
@@ -33,12 +32,6 @@ const _nav = [
     name: 'Events',
     to: '/events',
     icon: <CIcon icon={cilCalendar} customClassName="nav-icon" />,
-  },
-  {
-    component: CNavItem,
-    name: 'Templates',
-    to: '/templates',
-    icon: <CIcon icon={cilColorPalette} customClassName="nav-icon" />,
   },
 ]
 

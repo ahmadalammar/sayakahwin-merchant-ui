@@ -19,7 +19,7 @@ import {
   CBadge,
   CButton,
 } from '@coreui/react'
-import { CChartLine, CChartBar } from '@coreui/react-chartjs'
+import { CChartLine } from '@coreui/react-chartjs'
 import CIcon from '@coreui/icons-react'
 import {
   cilCalendar,
@@ -27,9 +27,7 @@ import {
   cilSpeedometer,
   cilStar,
   cilTags,
-  cilPlus,
   cilArrowRight,
-  cilColorPalette,
 } from '@coreui/icons'
 import merchantService from '../../services/merchantService'
 import authService from '../../services/auth'
@@ -118,7 +116,7 @@ const Dashboard = () => {
     )
   }
 
-  const { license, upcomingEvents, trendyTemplates, daily_chart_data } = dashboardData
+  const { license, upcomingEvents, daily_chart_data } = dashboardData
 
   const creditUsage =
     license.total_credits > 0
@@ -138,20 +136,6 @@ const Dashboard = () => {
       icon: cilTags,
       to: '/coupons',
       color: 'purple',
-    },
-    {
-      title: 'Create event',
-      description: 'Start a new wedding card',
-      icon: cilPlus,
-      to: '/events/create',
-      color: 'pink',
-    },
-    {
-      title: 'Browse templates',
-      description: 'Explore card designs',
-      icon: cilColorPalette,
-      to: '/templates',
-      color: 'navy',
     },
     {
       title: 'View events',
@@ -338,9 +322,9 @@ const Dashboard = () => {
         </CRow>
 
         {/* Charts Row */}
-        <CRow className="mb-4 g-3">
-          {daily_chart_data && daily_chart_data.length > 0 && (
-            <CCol lg={7}>
+        {daily_chart_data && daily_chart_data.length > 0 && (
+          <CRow className="mb-4 g-3">
+            <CCol lg={12}>
               <CCard className="h-100">
                 <CCardHeader>
                   <strong>Activity overview</strong>
@@ -388,49 +372,8 @@ const Dashboard = () => {
                 </CCardBody>
               </CCard>
             </CCol>
-          )}
-
-          <CCol lg={daily_chart_data && daily_chart_data.length > 0 ? 5 : 12}>
-            <CCard className="h-100">
-              <CCardHeader>
-                <strong>Popular templates</strong>
-                <p className="text-muted mb-0">Most used by your clients</p>
-              </CCardHeader>
-              <CCardBody>
-                {trendyTemplates && trendyTemplates.length > 0 ? (
-                  <CChartBar
-                    data={{
-                      labels: trendyTemplates.map((t) => t.theme),
-                      datasets: [
-                        {
-                          label: 'Usage',
-                          backgroundColor: '#2D1B4E',
-                          borderRadius: 6,
-                          data: trendyTemplates.map((t) => t.usage_count),
-                        },
-                      ],
-                    }}
-                    options={{
-                      indexAxis: 'y',
-                      plugins: { legend: { display: false } },
-                      scales: { x: { beginAtZero: true } },
-                      maintainAspectRatio: false,
-                    }}
-                    style={{ height: '280px' }}
-                  />
-                ) : (
-                  <div className="dashboard-empty-chart">
-                    <CIcon icon={cilColorPalette} size="3xl" className="text-muted mb-3" />
-                    <p className="text-muted mb-3">No template data yet</p>
-                    <Link to="/templates" className="btn btn-sm btn-outline-primary">
-                      Browse templates
-                    </Link>
-                  </div>
-                )}
-              </CCardBody>
-            </CCard>
-          </CCol>
-        </CRow>
+          </CRow>
+        )}
 
         {/* Upcoming Events */}
         <CCard>
@@ -457,7 +400,6 @@ const Dashboard = () => {
                       <CTableHeaderCell>Event</CTableHeaderCell>
                       <CTableHeaderCell>Schedule</CTableHeaderCell>
                       <CTableHeaderCell>Date</CTableHeaderCell>
-                      <CTableHeaderCell className="text-end">Action</CTableHeaderCell>
                     </CTableRow>
                   </CTableHead>
                   <CTableBody>
@@ -472,19 +414,6 @@ const Dashboard = () => {
                         <CTableDataCell data-label="Date">
                           {formatDate(event.latest_schedule_date)}
                         </CTableDataCell>
-                        <CTableDataCell data-label="Action" className="text-end">
-                          <CButton
-                            color="primary"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              navigate(`/merchant/${user.merchantId}/events/${event.id}`)
-                            }
-                          >
-                            Edit
-                            <CIcon icon={cilArrowRight} className="ms-1" size="sm" />
-                          </CButton>
-                        </CTableDataCell>
                       </CTableRow>
                     ))}
                   </CTableBody>
@@ -498,11 +427,7 @@ const Dashboard = () => {
                   Create your first wedding card or issue a coupon for a customer.
                 </p>
                 <div className="d-flex gap-2 justify-content-center flex-wrap">
-                  <CButton color="primary" onClick={() => navigate('/events/create')}>
-                    <CIcon icon={cilPlus} className="me-1" />
-                    Create event
-                  </CButton>
-                  <CButton color="primary" variant="outline" onClick={() => navigate('/coupons')}>
+                  <CButton color="primary" onClick={() => navigate('/coupons')}>
                     <CIcon icon={cilTags} className="me-1" />
                     Issue coupon
                   </CButton>
