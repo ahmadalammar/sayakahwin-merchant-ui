@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import api from '../../services/api'
 import {
   CButton,
@@ -44,9 +44,150 @@ import authService from 'src/services/auth'
 import PageTitle from '../../components/PageTitle'
 import EventViewModal from './EventViewModal'
 
+const parseApiDate = (value) => {
+  if (!value) return null
+  if (value instanceof Date) return value
+  const str = String(value).trim()
+  if (str.includes('T')) {
+    const d = new Date(str)
+    return isNaN(d.getTime()) ? null : d
+  }
+  const d = new Date(str.replace(' ', 'T') + 'Z')
+  return isNaN(d.getTime()) ? null : d
+}
+
+const formatDateTime = (value) => {
+  const d = parseApiDate(value)
+  if (!d) return '—'
+  return d.toLocaleString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+}
+
+const digitsOnly = (value) => String(value || '').replace(/\D/g, '')
+
+const MONTHS = [
+  { short: 'Jan', long: 'January' },
+  { short: 'Feb', long: 'February' },
+  { short: 'Mar', long: 'March' },
+  { short: 'Apr', long: 'April' },
+  { short: 'May', long: 'May' },
+  { short: 'Jun', long: 'June' },
+  { short: 'Jul', long: 'July' },
+  { short: 'Aug', long: 'August' },
+  { short: 'Sep', alt: 'Sept', long: 'September' },
+  { short: 'Oct', long: 'October' },
+  { short: 'Nov', long: 'November' },
+  { short: 'Dec', long: 'December' },
+]
+
+const getCreatedAt = (event) => event?.createdAt || event?.created_at || ''
+
+const getContactPhone = (event) =>
+  event?.contact_phone || event?.contact_phonenumber || event?.contact_phone_number || ''
+
+const getDateSearchValues = (createdAt) => {
+  if (!createdAt) return []
+  const raw = String(createdAt)
+  const values = [raw]
+  if (/^\d{4}-\d{2}-\d{2}/.test(raw)) {
+    values.push(raw.slice(0, 10))
+  }
+  const d = parseApiDate(createdAt)
+  if (!d) return values
+
+  const dayNum = d.getDate()
+  const monthNum = d.getMonth() + 1
+  const year = String(d.getFullYear())
+  const day = String(dayNum).padStart(2, '0')
+  const month = String(monthNum).padStart(2, '0')
+  const monthNames = MONTHS[d.getMonth()]
+  const shorts = [monthNames.short, monthNames.alt].filter(Boolean)
+
+  values.push(
+    d.toISOString().slice(0, 10),
+    `${year}-${month}-${day}`,
+    `${day}/${month}/${year}`,
+    `${dayNum}/${monthNum}/${year}`,
+    `${day}-${month}-${year}`,
+    `${dayNum}-${monthNum}-${year}`,
+    `${year}/${month}/${day}`,
+    formatDateTime(createdAt),
+  )
+
+  shorts.forEach((label) => {
+    values.push(
+      `${day} ${label} ${year}`,
+      `${dayNum} ${label} ${year}`,
+      `${label} ${year}`,
+      `${label} ${day}, ${year}`,
+    )
+  })
+  values.push(`${day} ${monthNames.long} ${year}`, `${monthNames.long} ${year}`)
+  return values
+}
+
+const normalizeMsianPhone = (digits) => {
+  if (!digits) return ''
+  if (digits.startsWith('60')) return digits.slice(2)
+  if (digits.startsWith('0')) return digits.slice(1)
+  return digits
+}
+
+const phoneMatchesQuery = (phone, query) => {
+  if (!phone) return false
+  if (String(phone).toLowerCase().includes(query)) return true
+
+  const queryDigits = digitsOnly(query)
+  if (queryDigits.length < 3) return false
+
+  const phoneDigits = digitsOnly(phone)
+  if (!phoneDigits) return false
+  if (phoneDigits.includes(queryDigits)) return true
+
+  const phoneLocal = normalizeMsianPhone(phoneDigits)
+  const queryLocal = normalizeMsianPhone(queryDigits)
+  return Boolean(phoneLocal && queryLocal && phoneLocal.includes(queryLocal))
+}
+
+const eventMatchesSearch = (event, term) => {
+  const query = String(term || '').trim().toLowerCase()
+  if (!query) return true
+
+  const textFields = [
+    event.name,
+    event.groom_name,
+    event.bride_name,
+    event.groom_short_name,
+    event.bride_short_name,
+    event.groom_father_name,
+    event.bride_father_name,
+    event.email,
+    event.description,
+    event.event_description,
+    getContactPhone(event),
+  ]
+
+  if (textFields.some((field) => field && String(field).toLowerCase().includes(query))) {
+    return true
+  }
+
+  if (phoneMatchesQuery(getContactPhone(event), query)) {
+    return true
+  }
+
+  return getDateSearchValues(getCreatedAt(event)).some((value) =>
+    String(value).toLowerCase().includes(query),
+  )
+}
+
 const Events = () => {
   const [allEvents, setAllEvents] = useState([])
-  const [events, setEvents] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
@@ -71,7 +212,6 @@ const Events = () => {
       .then((response) => {
         const eventsData = response.data || []
         setAllEvents(eventsData)
-        setEvents(eventsData.slice(0, itemsPerPage))
       })
       .catch((error) => {
         console.error('Error fetching events:', error)
@@ -84,37 +224,23 @@ const Events = () => {
     fetchEvents()
   }, [])
 
+  const filteredEvents = useMemo(
+    () => allEvents.filter((event) => eventMatchesSearch(event, searchTerm)),
+    [allEvents, searchTerm],
+  )
+  const filteredTotal = filteredEvents.length
+  const pageCount = Math.ceil(filteredTotal / itemsPerPage)
+  const safePage = pageCount === 0 ? 1 : Math.min(currentPage, pageCount)
+  const events = filteredEvents.slice((safePage - 1) * itemsPerPage, safePage * itemsPerPage)
+
   const handleSearch = (event) => {
-    const term = event.target.value
-    setSearchTerm(term)
-    const filteredEvents = allEvents.filter(
-      (event) =>
-        (event.name && event.name.toLowerCase().includes(term.toLowerCase())) ||
-        (event.description && event.description.toLowerCase().includes(term.toLowerCase())),
-    )
-    setEvents(filteredEvents.slice(0, itemsPerPage))
+    setSearchTerm(event.target.value)
     setCurrentPage(1)
   }
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber)
-    const startIndex = (pageNumber - 1) * itemsPerPage
-    const endIndex = startIndex + itemsPerPage
-    const filteredEvents = allEvents.filter(
-      (event) =>
-        (event.name && event.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (event.description && event.description.toLowerCase().includes(searchTerm.toLowerCase())),
-    )
-    setEvents(filteredEvents.slice(startIndex, endIndex))
   }
-
-  const filteredTotal = allEvents.filter(
-    (event) =>
-      (event.name && event.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (event.description && event.description.toLowerCase().includes(searchTerm.toLowerCase())),
-  ).length
-
-  const pageCount = Math.ceil(filteredTotal / itemsPerPage)
 
   const handleView = (event) => {
     setViewEvent(event)
@@ -198,7 +324,7 @@ const Events = () => {
 
             {/* Search Bar */}
             <div className="mb-4">
-              <div className="position-relative" style={{ maxWidth: '400px' }}>
+              <div className="position-relative" style={{ maxWidth: '520px' }}>
                 <CIcon 
                   icon={cilSearch} 
                   className="position-absolute text-muted" 
@@ -206,12 +332,15 @@ const Events = () => {
                 />
                 <CFormInput
                   type="text"
-                  placeholder="Search events by name or description..."
+                  placeholder="Search by name, email, phone, or created date..."
                   value={searchTerm}
                   onChange={handleSearch}
                   style={{ paddingLeft: '40px' }}
                 />
               </div>
+              <p className="text-muted mb-0 mt-2" style={{ fontSize: '0.8125rem' }}>
+                Matches couple names, email, contact phone, and created date (e.g. 18 Sep 2026 or 2026-09-18).
+              </p>
             </div>
 
             {filteredTotal === 0 ? (
@@ -219,8 +348,8 @@ const Events = () => {
                 <CIcon icon={cilCalendar} size="3xl" className="mb-3 text-muted" />
                 <h5>{searchTerm ? 'No events match your search' : 'No events yet'}</h5>
                 <p className="mb-0">
-                  {searchTerm 
-                    ? 'Try adjusting your search terms.'
+                  {searchTerm
+                    ? 'Try a couple name, email, phone number, or created date.'
                     : 'No events have been added yet.'}
                 </p>
               </CAlert>
@@ -240,7 +369,9 @@ const Events = () => {
                       <CTableRow>
                         <CTableHeaderCell style={{ width: '60px' }}>#</CTableHeaderCell>
                         <CTableHeaderCell>Event Name</CTableHeaderCell>
-                        <CTableHeaderCell>Description</CTableHeaderCell>
+                        <CTableHeaderCell>Email</CTableHeaderCell>
+                        <CTableHeaderCell>Phone</CTableHeaderCell>
+                        <CTableHeaderCell>Created</CTableHeaderCell>
                         <CTableHeaderCell style={{ textAlign: 'right' }}>Actions</CTableHeaderCell>
                       </CTableRow>
                     </CTableHead>
@@ -248,19 +379,19 @@ const Events = () => {
                       {events.map((event, index) => (
                         <CTableRow key={event.id}>
                           <CTableDataCell data-label="#">
-                            <span className="text-muted">{((currentPage - 1) * itemsPerPage) + index + 1}</span>
+                            <span className="text-muted">{((safePage - 1) * itemsPerPage) + index + 1}</span>
                           </CTableDataCell>
                           <CTableDataCell data-label="Event Name">
                             <strong>{event.name || 'Untitled Event'}</strong>
                           </CTableDataCell>
-                          <CTableDataCell data-label="Description">
-                            <span className="text-muted">
-                              {event.description 
-                                ? (event.description.length > 50 
-                                    ? event.description.substring(0, 50) + '...' 
-                                    : event.description)
-                                : 'No description'}
-                            </span>
+                          <CTableDataCell data-label="Email">
+                            <span className="text-muted">{event.email || '—'}</span>
+                          </CTableDataCell>
+                          <CTableDataCell data-label="Phone">
+                            <span className="text-muted">{getContactPhone(event) || '—'}</span>
+                          </CTableDataCell>
+                          <CTableDataCell data-label="Created">
+                            <span className="text-muted">{formatDateTime(getCreatedAt(event))}</span>
                           </CTableDataCell>
                           <CTableDataCell data-label="Actions" className="text-end">
                             <div className="d-flex justify-content-end gap-2 flex-wrap">
@@ -309,25 +440,25 @@ const Events = () => {
                     <CRow className="align-items-center">
                       <CCol>
                         <p className="text-muted mb-0" style={{ fontSize: '0.875rem' }}>
-                          Showing {((currentPage - 1) * itemsPerPage) + 1} to{' '}
-                          {Math.min(currentPage * itemsPerPage, filteredTotal)} of {filteredTotal} events
+                          Showing {((safePage - 1) * itemsPerPage) + 1} to{' '}
+                          {Math.min(safePage * itemsPerPage, filteredTotal)} of {filteredTotal} events
                         </p>
                       </CCol>
                       <CCol xs="auto">
                         <CPagination aria-label="Events pagination">
                           <CPaginationItem
-                            disabled={currentPage === 1}
-                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={safePage === 1}
+                            onClick={() => handlePageChange(safePage - 1)}
                           >
                             Previous
                           </CPaginationItem>
                           {[...Array(Math.min(pageCount, 5)).keys()].map((page) => {
                             let pageNum = page + 1
                             if (pageCount > 5) {
-                              if (currentPage > 3) {
-                                pageNum = currentPage - 2 + page
+                              if (safePage > 3) {
+                                pageNum = safePage - 2 + page
                               }
-                              if (currentPage > pageCount - 2) {
+                              if (safePage > pageCount - 2) {
                                 pageNum = pageCount - 4 + page
                               }
                             }
@@ -335,7 +466,7 @@ const Events = () => {
                             return (
                               <CPaginationItem
                                 key={pageNum}
-                                active={pageNum === currentPage}
+                                active={pageNum === safePage}
                                 onClick={() => handlePageChange(pageNum)}
                               >
                                 {pageNum}
@@ -343,8 +474,8 @@ const Events = () => {
                             )
                           })}
                           <CPaginationItem
-                            disabled={currentPage === pageCount}
-                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={safePage === pageCount}
+                            onClick={() => handlePageChange(safePage + 1)}
                           >
                             Next
                           </CPaginationItem>
